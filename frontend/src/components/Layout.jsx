@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPlus,
+  faRightFromBracket,
+  faRightToBracket,
+  faUserPlus,
+} from "@fortawesome/free-solid-svg-icons";
 
 function Layout({ children }) {
   const location = useLocation();
@@ -96,12 +103,37 @@ function Layout({ children }) {
                         {user.email}
                       </span>
                     </li>
+                    {user.role === "admin" && (
+                      <>
+                        <li>
+                          <hr className="dropdown-divider" />
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/books/new">
+                            <FontAwesomeIcon icon={faPlus} className="me-2" />
+                            Add Book
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/categories/new">
+                            <FontAwesomeIcon icon={faPlus} className="me-2" />
+                            Add Category
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" to="/authors/new">
+                            <FontAwesomeIcon icon={faPlus} className="me-2" />
+                            Add Author
+                          </Link>
+                        </li>
+                      </>
+                    )}
                     <li>
                       <hr className="dropdown-divider" />
                     </li>
                     <li>
                       <button className="dropdown-item" onClick={handleLogout}>
-                        Logout
+                        <FontAwesomeIcon icon={faRightFromBracket} /> Logout
                       </button>
                     </li>
                   </ul>
@@ -113,7 +145,7 @@ function Layout({ children }) {
                       className={`nav-link ${isActive("/login")}`}
                       to="/login"
                     >
-                      Login
+                      <FontAwesomeIcon icon={faRightToBracket} /> Login
                     </Link>
                   </li>
                   <li className="nav-item">
@@ -121,7 +153,7 @@ function Layout({ children }) {
                       className={`nav-link ${isActive("/register")}`}
                       to="/register"
                     >
-                      Register
+                      <FontAwesomeIcon icon={faUserPlus} /> Register
                     </Link>
                   </li>
                 </>

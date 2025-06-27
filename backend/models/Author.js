@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const authorSchema = new mongoose.Schema(
   {
     firstname: { type: String, required: true },
-    lastname: { type: String, require: true },
+    lastname: { type: String, required: true }, // fix: 'require' -> 'required'
     birthday: { type: Date },
     picture: { type: String }, // URL or filename
     bio: { type: String },

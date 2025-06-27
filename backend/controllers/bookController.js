@@ -11,7 +11,8 @@ const getBooks = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   // Filtering
-  const filter = { approved: true };
+  const filter = {};
+
   if (req.query.search) {
     filter.title = { $regex: "^" + req.query.search, $options: "i" };
   }
@@ -25,6 +26,9 @@ const getBooks = asyncHandler(async (req, res) => {
       return res.json({ books: [], totalPages: 0, totalBooks: 0 });
     }
   }
+  if (req.query.author) {
+    filter.author = req.query.author;
+  }
 
   // Sorting
   let sort = {};
@@ -36,20 +40,14 @@ const getBooks = asyncHandler(async (req, res) => {
   }
 
   const [books, total] = await Promise.all([
-    Book.find(filter).sort(sort).skip(skip).limit(limit),
+    Book.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate("author", "firstname lastname")
+      .populate("category", "name"),
     Book.countDocuments(filter),
   ]);
-
-  // Search check:
-
-  if (books.length === 0) {
-    return res.status(404).json({
-      message: "Data Not Found",
-      books: [],
-      totalPages: 0,
-      totalBooks: 0,
-    });
-  }
 
   res.json({
     books,
@@ -151,11 +149,16 @@ const getBookById = asyncHandler(async (req, res) => {
 
 // Admin: create book
 const createBook = asyncHandler(async (req, res) => {
-  const { title, author, description, publishedDate } = req.body;
+  const { title, author, description, category } = req.body;
 
   if (!title || !author) {
     res.status(400);
     throw new Error("Title and author are required");
+  }
+
+  if (!category) {
+    res.status(400);
+    throw new Error("Category is required");
   }
 
   // Only admin can create books
@@ -164,14 +167,24 @@ const createBook = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to create books");
   }
 
-  const book = new Book({
+  console.log("Creating book with data:", {
     title,
     author,
     description,
-    publishedDate,
+    category,
+    createdBy: req.user._id,
+  });
+
+  const book = new Book({
+    title,
+    author, // Author ObjectId from frontend dropdown
+    description,
+    category: [category], // Convert single category to array
+    createdBy: req.user._id,
   });
 
   const createdBook = await book.save();
+  console.log("Book created successfully:", createdBook);
   res.status(201).json(createdBook);
 });
 

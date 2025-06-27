@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -11,6 +11,13 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (user) {
+      navigate("/");
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     if (e.target.name === "rememberMe") {
