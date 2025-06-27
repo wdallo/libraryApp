@@ -8,6 +8,7 @@ function BookForm() {
     author: "",
     description: "",
     category: "",
+    releaseYear: "",
   });
   const [authors, setAuthors] = useState([]);
   const [loadingAuthors, setLoadingAuthors] = useState(true);
@@ -18,6 +19,7 @@ function BookForm() {
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [bookCover, setBookCover] = useState(null);
 
   useEffect(() => {
     setLoadingAuthors(true);
@@ -79,6 +81,11 @@ function BookForm() {
     });
   };
 
+  // Handle file input change
+  const handleFileChange = (e) => {
+    setBookCover(e.target.files[0]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -86,7 +93,6 @@ function BookForm() {
     setLoading(true);
 
     try {
-      // Get token from user object in localStorage/sessionStorage
       let user = localStorage.getItem("user") || sessionStorage.getItem("user");
       let token = "";
       if (user) {
@@ -96,15 +102,25 @@ function BookForm() {
         } catch {}
       }
 
+      // Use FormData for file upload
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("author", formData.author);
+      data.append("category", formData.category);
+      data.append("description", formData.description);
+      data.append("releaseYear", formData.releaseYear);
+      if (bookCover) data.append("picture", bookCover);
+
       console.log("BookForm - Submitting data:", formData);
       console.log("BookForm - Token:", token ? "Present" : "Missing");
+      console.log("BookForm - BookCover:", bookCover);
 
       const response = await axios.post(
         import.meta.env.VITE_API_URL + "/api/books",
-        formData,
+        data,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
             authorization: token ? `Bearer ${token}` : "",
           },
         }
@@ -117,7 +133,9 @@ function BookForm() {
         author: "",
         description: "",
         category: "",
+        releaseYear: "",
       });
+      setBookCover(null);
 
       // Optionally redirect to books page after success
       setTimeout(() => {
@@ -151,7 +169,7 @@ function BookForm() {
               <h5 className="card-title mb-0">Add New Book</h5>
             </div>
             <div className="card-body">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} encType="multipart/form-data">
                 <div className="row">
                   <div className="col-md-6 mb-3">
                     <label htmlFor="title" className="form-label">
@@ -247,6 +265,23 @@ function BookForm() {
                 </div>
 
                 <div className="mb-3">
+                  <label htmlFor="releaseYear" className="form-label">
+                    Release Year
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="releaseYear"
+                    name="releaseYear"
+                    value={formData.releaseYear}
+                    onChange={handleChange}
+                    min="0"
+                    max={new Date().getFullYear()}
+                    placeholder="e.g. 2024"
+                  />
+                </div>
+
+                <div className="mb-3">
                   <label htmlFor="bookCover" className="form-label">
                     Book Cover
                   </label>
@@ -255,10 +290,25 @@ function BookForm() {
                     className="form-control"
                     id="bookCover"
                     accept="image/*"
+                    onChange={handleFileChange}
                   />
                   <div className="form-text">
                     Upload a cover image for the book (optional)
                   </div>
+                  {bookCover && (
+                    <div className="mt-2">
+                      <img
+                        src={URL.createObjectURL(bookCover)}
+                        alt="Preview"
+                        style={{
+                          maxWidth: 120,
+                          maxHeight: 160,
+                          borderRadius: 8,
+                          border: "1px solid #ccc",
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {error && <div className="alert alert-danger">{error}</div>}

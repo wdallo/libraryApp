@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import Loading from "../components/Loading";
+import BookCard from "../components/BookCard";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -90,10 +91,6 @@ function Books() {
     return <Loading />;
   }
 
-  console.log("Books.jsx - Rendering with books:", books);
-  console.log("Books.jsx - Books length:", books.length);
-  console.log("Books.jsx - Loading state:", loading);
-
   return (
     <div className="container mt-4 bg-white">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -139,71 +136,7 @@ function Books() {
         <div className="row">
           {books.map((book) => (
             <div key={book._id || book.id} className="col-md-4 mb-4">
-              <div className="card h-100 bg-dark text-white border-white border-2 shadow">
-                <img
-                  src={
-                    book.picture
-                      ? book.picture.startsWith("http")
-                        ? book.picture
-                        : import.meta.env.VITE_API_URL + book.picture
-                      : import.meta.env.VITE_API_URL + "/uploads/notfound.png"
-                  }
-                  className="card-img-top"
-                  alt={book.title || "Book cover"}
-                  style={{ height: "300px", objectFit: "cover" }}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src =
-                      import.meta.env.VITE_API_URL + "/uploads/notfound.png";
-                  }}
-                />
-                <div className="card-body d-flex flex-column">
-                  <h5 className="card-title">{book.title || "Untitled"}</h5>
-                  <p className="card-text text-muted">
-                    by{" "}
-                    {book.author &&
-                    typeof book.author === "object" &&
-                    book.author.firstname
-                      ? `${book.author.firstname} ${book.author.lastname || ""}`
-                      : typeof book.author === "string"
-                      ? book.author
-                      : "Unknown Author"}
-                  </p>
-                  <p className="card-text">
-                    <small className="text-muted">
-                      {book.category &&
-                      Array.isArray(book.category) &&
-                      book.category.length > 0
-                        ? book.category[0]?.name || "Uncategorized"
-                        : book.category?.name || "Uncategorized"}{" "}
-                      •{" "}
-                      {book.publishedYear ||
-                        book.publishedDate ||
-                        "Unknown Year"}
-                    </small>
-                  </p>
-                  <p className="card-text flex-grow-1">
-                    {(book.description || "No description available.").slice(
-                      0,
-                      100
-                    )}
-                    {book.description && book.description.length > 100
-                      ? "..."
-                      : ""}
-                  </p>
-                  <div className="d-flex gap-2 mt-auto">
-                    <button className="btn btn-outline-light btn-sm flex-fill">
-                      View Details
-                    </button>
-                    <button className="btn btn-outline-light btn-sm">
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button className="btn btn-outline-light btn-sm">
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <BookCard book={book} />
             </div>
           ))}
         </div>

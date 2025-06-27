@@ -6,54 +6,65 @@ const fs = require("fs");
 const path = require("path");
 
 const getBooks = asyncHandler(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const skip = (page - 1) * limit;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-  // Filtering
-  const filter = {};
+    // Build query
+    let query = {};
 
-  if (req.query.search) {
-    filter.title = { $regex: "^" + req.query.search, $options: "i" };
-  }
-  if (req.query.category) {
-    const categoryDoc = await BookCategory.findOne({
-      name: req.query.category.toLowerCase(),
-    });
-    if (categoryDoc) {
-      filter.category = categoryDoc._id;
-    } else {
-      return res.json({ books: [], totalPages: 0, totalBooks: 0 });
+    if (req.query.search) {
+      query.title = { $regex: req.query.search, $options: "i" };
     }
-  }
-  if (req.query.author) {
-    filter.author = req.query.author;
-  }
 
-  // Sorting
-  let sort = {};
-  if (req.query.sort) {
-    if (req.query.sort === "date-asc") sort.time = 1;
-    else if (req.query.sort === "date-desc") sort.time = -1;
-    else if (req.query.sort === "title-asc") sort.title = 1;
-    else if (req.query.sort === "title-desc") sort.title = -1;
-  }
+    if (req.query.author) {
+      query.author = req.query.author;
+    }
 
-  const [books, total] = await Promise.all([
-    Book.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
+    if (req.query.category) {
+      // Handle category search by name or ID
+      if (mongoose.Types.ObjectId.isValid(req.query.category)) {
+        query.category = { $in: [req.query.category] };
+      } else {
+        // Find category by name first
+        const category = await BookCategory.findOne({
+          name: { $regex: req.query.category, $options: "i" },
+        });
+        if (category) {
+          query.category = { $in: [category._id] };
+        }
+      }
+    }
+
+    console.log("getBooks - MongoDB query:", query);
+
+    // Get books with proper population
+    const books = await Book.find(query)
       .populate("author", "firstname lastname")
-      .populate("category", "name"),
-    Book.countDocuments(filter),
-  ]);
+      .populate("category", "name")
+      .populate("createdBy", "username")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-  res.json({
-    books,
-    totalPages: Math.ceil(total / limit),
-    totalBooks: total,
-  });
+    const totalBooks = await Book.countDocuments(query);
+    const totalPages = Math.ceil(totalBooks / limit);
+
+    console.log("getBooks - Found books:", books.length);
+
+    res.status(200).json({
+      books,
+      totalBooks,
+      totalPages,
+      currentPage: page,
+      message:
+        books.length > 0 ? "Books retrieved successfully" : "No books found",
+    });
+  } catch (error) {
+    console.error("getBooks - Error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
 });
 
 /**
@@ -149,7 +160,7 @@ const getBookById = asyncHandler(async (req, res) => {
 
 // Admin: create book
 const createBook = asyncHandler(async (req, res) => {
-  const { title, author, description, category } = req.body;
+  const { title, author, description, category, releaseYear } = req.body;
 
   if (!title || !author) {
     res.status(400);
@@ -167,19 +178,18 @@ const createBook = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to create books");
   }
 
-  console.log("Creating book with data:", {
-    title,
-    author,
-    description,
-    category,
-    createdBy: req.user._id,
-  });
+  let picture = null;
+  if (req.file) {
+    picture = `/uploads/books/${req.file.filename}`;
+  }
 
   const book = new Book({
     title,
     author, // Author ObjectId from frontend dropdown
     description,
     category: [category], // Convert single category to array
+    releaseYear,
+    picture,
     createdBy: req.user._id,
   });
 

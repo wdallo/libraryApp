@@ -10,7 +10,7 @@ const bookSchema = new mongoose.Schema(
     },
     description: { type: String },
     picture: { type: String }, // URL or filename
-    released: { type: Date },
+    releaseYear: { type: Date, required: true },
     category: [
       {
         type: mongoose.Schema.Types.ObjectId,

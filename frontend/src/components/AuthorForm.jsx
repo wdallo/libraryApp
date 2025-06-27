@@ -146,6 +146,20 @@ function AuthorForm() {
                   <div className="form-text">
                     Upload an image for the author (optional)
                   </div>
+                  {image && (
+                    <div className="mt-2">
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt="Preview"
+                        style={{
+                          maxWidth: 120,
+                          maxHeight: 160,
+                          borderRadius: 8,
+                          border: "1px solid #ccc",
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
                 {error && <div className="alert alert-danger">{error}</div>}
                 {success && (
