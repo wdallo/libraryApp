@@ -25,7 +25,8 @@ mongoose
   .catch((err) => console.log("MongoDB connection error:", err));
 
 const corsOptions = {
-  origin: "http://localhost/",
+  origin: "http://localhost:5173", // Remove trailing slash for strict match
+  credentials: true,
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
