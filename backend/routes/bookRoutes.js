@@ -43,7 +43,6 @@ const upload = multer({
 // Public routes
 router.get("/", getBooks);
 router.get("/:id", getBookById);
-
 // Protected routes (admin only)
 router.post("/", protect, adminOnly, upload.single("picture"), createBook);
 router.put("/:id", protect, adminOnly, upload.single("picture"), updateBook);

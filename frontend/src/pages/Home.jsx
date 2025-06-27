@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import RecentBooks from "../components/RecentBooks";
 
 function Home() {
   return (
@@ -63,69 +64,7 @@ function Home() {
       </div>
 
       {/* Recent Books Section */}
-      <div className="row mt-5">
-        <div className="col-12">
-          <h2 className="mb-4 text-black">Recent Books</h2>
-          <div className="row">
-            <div className="col-md-3 mb-3">
-              <div className="card bg-white text-black border-dark border-2 shadow">
-                <img
-                  src="https://via.placeholder.com/200x300"
-                  className="card-img-top"
-                  alt="Book Cover"
-                />
-                <div className="card-body">
-                  <h6 className="card-title">Sample Book Title</h6>
-                  <p className="card-text text-muted">Author Name</p>
-                  <button className="btn btn-dark btn-sm">View Details</button>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3 mb-3">
-              <div className="card bg-white text-black border-dark border-2 shadow">
-                <img
-                  src="https://via.placeholder.com/200x300"
-                  className="card-img-top"
-                  alt="Book Cover"
-                />
-                <div className="card-body">
-                  <h6 className="card-title">Another Book</h6>
-                  <p className="card-text text-muted">Another Author</p>
-                  <button className="btn btn-dark btn-sm">View Details</button>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3 mb-3">
-              <div className="card bg-white text-black border-dark border-2 shadow">
-                <img
-                  src="https://via.placeholder.com/200x300"
-                  className="card-img-top"
-                  alt="Book Cover"
-                />
-                <div className="card-body">
-                  <h6 className="card-title">Third Book</h6>
-                  <p className="card-text text-muted">Third Author</p>
-                  <button className="btn btn-dark btn-sm">View Details</button>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3 mb-3">
-              <div className="card bg-white text-black border-dark border-2 shadow">
-                <img
-                  src="https://via.placeholder.com/200x300"
-                  className="card-img-top"
-                  alt="Book Cover"
-                />
-                <div className="card-body">
-                  <h6 className="card-title">Fourth Book</h6>
-                  <p className="card-text text-muted">Fourth Author</p>
-                  <button className="btn btn-dark btn-sm">View Details</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <RecentBooks />
     </div>
   );
 }

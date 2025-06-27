@@ -13,10 +13,17 @@ function Categories() {
     axios
       .get(import.meta.env.VITE_API_URL + "/api/categories")
       .then((res) => {
-        setCategories(res.data);
+        console.log("API categories response:", res.data); // <--- add this line
+        setCategories(
+          Array.isArray(res.data) ? res.data : res.data.categories || []
+        );
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error("API categories error:", err);
+        setCategories([]);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -33,15 +40,14 @@ function Categories() {
     return <Loading />;
   }
 
+  // Helper to count books in a category
+  const getBookCount = (category) =>
+    isNaN(Number(category.bookCount)) ? 0 : Number(category.bookCount);
+
   return (
     <div className="container mt-4 bg-white">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-black">Book Categories</h2>
-        {user && user.role === "admin" && (
-          <button className="btn btn-dark d-none">
-            <i className="fas fa-plus me-2"></i>Add New Category
-          </button>
-        )}
       </div>
 
       {/* Categories Grid */}
@@ -50,6 +56,7 @@ function Categories() {
           <CategoryCard
             key={category._id || category.id || category.name}
             category={category}
+            bookCount={getBookCount(category)}
           />
         ))}
       </div>
@@ -68,7 +75,7 @@ function Categories() {
                 <div className="col-md-3">
                   <h3 className="text-white">
                     {categories.reduce(
-                      (sum, cat) => sum + (Number(cat.bookCount) || 0),
+                      (sum, cat) => sum + getBookCount(cat),
                       0
                     )}
                   </h3>
@@ -77,9 +84,7 @@ function Categories() {
                 <div className="col-md-3">
                   <h3 className="text-white">
                     {categories.length > 0
-                      ? Math.max(
-                          ...categories.map((cat) => Number(cat.bookCount) || 0)
-                        ).toString()
+                      ? Math.max(...categories.map(getBookCount)).toString()
                       : "0"}
                   </h3>
                   <p>Largest Category</p>
@@ -89,7 +94,7 @@ function Categories() {
                     {categories.length > 0
                       ? Math.round(
                           categories.reduce(
-                            (sum, cat) => sum + (Number(cat.bookCount) || 0),
+                            (sum, cat) => sum + getBookCount(cat),
                             0
                           ) / categories.length
                         ).toString()

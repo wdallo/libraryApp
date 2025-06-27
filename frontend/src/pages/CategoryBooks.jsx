@@ -15,7 +15,7 @@ function CategoryBooks() {
       try {
         console.log("Fetching category with ID:", categoryId);
 
-        // Fetch category details
+        // Fetch category details (includes books)
         const categoryResponse = await axios.get(
           `${import.meta.env.VITE_API_URL}/api/categories/${categoryId}`
         );
@@ -25,33 +25,8 @@ function CategoryBooks() {
           categoryResponse.data.category || categoryResponse.data;
         setCategory(categoryData);
 
-        // Fetch books by this category (handle 404 as empty result, not error)
-        try {
-          console.log("Fetching books for category:", categoryId);
-          const booksResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/books?category=${
-              categoryData.name
-            }`
-          );
-          console.log("Books response:", booksResponse.data);
-          setBooks(
-            Array.isArray(booksResponse.data)
-              ? booksResponse.data
-              : booksResponse.data.books || []
-          );
-        } catch (booksError) {
-          console.log(
-            "No books found for category (this is normal):",
-            booksError.response?.status
-          );
-          // If 404, it means no books found, which is fine
-          if (booksError.response?.status === 404) {
-            setBooks([]);
-          } else {
-            console.error("Error fetching books:", booksError);
-            setBooks([]);
-          }
-        }
+        // Use books from the category response
+        setBooks(categoryData.books || []);
       } catch (error) {
         console.error("Error fetching category:", error);
         setCategory(null);
