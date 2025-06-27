@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Loading from "../components/Loading";
+import CategoryCard from "../components/CategoryCard";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -16,54 +19,38 @@ function Categories() {
       .catch(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    const storedUser =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      setUser(null);
+    }
+  }, []);
+
   if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100 vw-100 bg-white">
-        <div className="text-center">
-          <div className="spinner-border text-dark" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
     <div className="container mt-4 bg-white">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-black">Book Categories</h2>
-        <button className="btn btn-dark">
-          <i className="fas fa-plus me-2"></i>Add New Category
-        </button>
+        {user && user.role === "admin" && (
+          <button className="btn btn-dark d-none">
+            <i className="fas fa-plus me-2"></i>Add New Category
+          </button>
+        )}
       </div>
 
       {/* Categories Grid */}
       <div className="row">
         {categories.map((category) => (
-          <div key={category.id} className="col-md-6 col-lg-4 mb-4">
-            <div className="card h-100 bg-dark text-white border-white border-2 shadow">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-start mb-3">
-                  <h5 className="card-title text-white">{category.name}</h5>
-                  <span className="badge bg-white text-dark border border-dark">
-                    {category.bookCount} books
-                  </span>
-                </div>
-                <p className="card-text">{category.description}</p>
-                <div className="d-flex gap-2 mt-auto">
-                  <button className="btn btn-outline-light btn-sm">
-                    View Books
-                  </button>
-                  <button className="btn btn-outline-light btn-sm">
-                    <i className="fas fa-edit"></i>
-                  </button>
-                  <button className="btn btn-outline-light btn-sm">
-                    <i className="fas fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <CategoryCard
+            key={category._id || category.id || category.name}
+            category={category}
+          />
         ))}
       </div>
 

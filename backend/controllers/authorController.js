@@ -56,7 +56,14 @@ const getAuthors = asyncHandler(async (req, res) => {
  * GET /api/authors/:id
  */
 const getAuthorById = asyncHandler(async (req, res) => {
-  const author = await Author.findById(req.params.id);
+  const { id } = req.params;
+
+  // Validate ObjectId format
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(400).json({ message: "Invalid author ID format" });
+  }
+
+  const author = await Author.findById(id);
 
   if (!author) {
     return res.status(404).json({ message: "Author not found" });

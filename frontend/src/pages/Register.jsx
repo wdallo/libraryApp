@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
@@ -12,6 +12,13 @@ function Register() {
   const [showTerms, setShowTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (user) {
+      window.location.replace("/");
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
