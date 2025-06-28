@@ -7,7 +7,7 @@ function Home() {
       {/* Hero Section */}
       <div className="jumbotron bg-dark text-white p-5 rounded mb-4 border border-white shadow">
         <h1 className="display-4">Welcome to Library Management System</h1>
-        <p className="lead text-muted">
+        <p className="lead">
           Manage your books, authors, and categories efficiently with our modern
           library system.
         </p>

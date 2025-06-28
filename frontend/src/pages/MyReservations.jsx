@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import Loading from "../components/Loading";
 
 function MyReservations() {
   const [reservations, setReservations] = useState([]);
@@ -153,11 +154,7 @@ function MyReservations() {
   };
 
   if (loading) {
-    return (
-      <div className="container mt-5">
-        <div className="text-center">Loading your reservations...</div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

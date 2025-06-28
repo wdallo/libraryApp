@@ -76,14 +76,8 @@ function AuthorCard({ author }) {
               to={`/authors/${author._id || author.id}/books`}
               className="btn btn-primary btn-sm px-3 rounded-pill shadow-sm text-decoration-none"
             >
-              View Books
+              View Books Author
             </Link>
-            <button className="btn btn-outline-light btn-sm px-3 rounded-pill shadow-sm">
-              <i className="fas fa-edit"></i>
-            </button>
-            <button className="btn btn-danger btn-sm px-3 rounded-pill shadow-sm">
-              <i className="fas fa-trash"></i>
-            </button>
           </div>
         </div>
       </div>
