@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import apiClient from "../../utils/apiClient";
 import Loading from "../../components/Loading";
 import Modal from "../../components/Modal";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBackward,
+  faMagnifyingGlass,
+  faPen,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function AdminBooks() {
@@ -24,7 +29,6 @@ function AdminBooks() {
     description: "",
     pages: 0,
     language: "",
-    publisher: "",
     publishedDate: "",
   });
 
@@ -62,16 +66,34 @@ function AdminBooks() {
 
   const handleEditBook = (book) => {
     setSelectedBook(book);
+
+    // Handle author object properly
+    let authorValue = "";
+    if (book.author && typeof book.author === "object") {
+      authorValue = `${book.author.firstName || ""} ${
+        book.author.lastName || ""
+      }`.trim();
+    } else if (typeof book.author === "string") {
+      authorValue = book.author;
+    }
+
+    // Handle category object properly - ensure we always get a string ID
+    let categoryValue = "";
+    if (book.category && typeof book.category === "object") {
+      categoryValue = book.category._id || "";
+    } else if (typeof book.category === "string") {
+      categoryValue = book.category;
+    }
+
     setEditFormData({
       title: book.title,
-      author: book.author,
-      category: book.category?._id || book.category,
+      author: authorValue,
+      category: categoryValue,
       totalQuantity: book.totalQuantity,
       availableQuantity: book.availableQuantity,
       description: book.description || "",
       pages: book.pages || 0,
       language: book.language || "",
-      publisher: book.publisher || "",
       publishedDate: book.publishedDate ? book.publishedDate.split("T")[0] : "",
     });
     setShowEditModal(true);
@@ -138,13 +160,25 @@ function AdminBooks() {
 
   const filteredBooks = Array.isArray(books)
     ? books.filter((book) => {
+        // Handle author search for both object and string types
+        let authorName = "";
+        if (book.author && typeof book.author === "object") {
+          authorName = `${book.author.firstName || ""} ${
+            book.author.lastName || ""
+          }`.trim();
+        } else if (typeof book.author === "string") {
+          authorName = book.author;
+        }
+
         const matchesSearch =
           book.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          book.author?.toLowerCase().includes(searchTerm.toLowerCase());
+          authorName.toLowerCase().includes(searchTerm.toLowerCase());
+
         const matchesCategory =
           !selectedCategory ||
           book.category?._id === selectedCategory ||
           book.category === selectedCategory;
+
         return matchesSearch && matchesCategory;
       })
     : [];
@@ -160,8 +194,10 @@ function AdminBooks() {
           <i className="fas fa-book me-2"></i>
           Books Management
         </h2>
+        <Link to={-1} className="btn btn-outline-secondary">
+          <FontAwesomeIcon icon={faBackward} /> Go Back
+        </Link>
       </div>
-
       {/* Search and Filter */}
       <div className="row mb-4">
         <div className="col-md-6">
@@ -197,16 +233,11 @@ function AdminBooks() {
           className="col-md-3 d-flex justify-content-end"
           style={{ gap: "10px" }}
         >
-          <Link to="/admin/dashboard" className="btn btn-outline-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Admin
-          </Link>{" "}
           <Link to="/books/new" className="btn btn-dark">
             <i className="fas fa-plus me-2"></i>Add New Book
           </Link>
         </div>
       </div>
-
       {/* Books Table */}
       <div className="card">
         <div className="card-body">
@@ -241,10 +272,22 @@ function AdminBooks() {
                         {book.title}
                       </Link>
                     </td>
-                    <td>{book.author}</td>
+                    <td>
+                      {book.author && typeof book.author === "object"
+                        ? `${book.author.firstName || ""} ${
+                            book.author.lastName || ""
+                          }`.trim() || "Unknown Author"
+                        : String(book.author || "Unknown Author")}
+                    </td>
                     <td>
                       <span className="badge bg-secondary">
-                        {book.category?.name || "Uncategorized"}
+                        {String(
+                          book.category &&
+                            Array.isArray(book.category) &&
+                            book.category.length > 0
+                            ? book.category[0]?.name || "Uncategorized"
+                            : book.category?.name || "Uncategorized"
+                        )}
                       </span>
                     </td>
                     <td>
@@ -276,14 +319,14 @@ function AdminBooks() {
                           onClick={() => handleEditBook(book)}
                           title="Edit Book"
                         >
-                          <i className="fas fa-edit"></i>
+                          <FontAwesomeIcon icon={faPen} />
                         </button>
                         <button
                           className="btn btn-outline-danger"
                           onClick={() => handleDeleteBook(book)}
                           title="Delete Book"
                         >
-                          <i className="fas fa-trash"></i>
+                          <FontAwesomeIcon icon={faTrash} />
                         </button>
                       </div>
                     </td>
@@ -294,7 +337,6 @@ function AdminBooks() {
           </div>
         </div>
       </div>
-
       {/* Edit Book Modal */}
       <Modal
         show={showEditModal}
@@ -420,9 +462,10 @@ function AdminBooks() {
             <div className="col-md-4">
               <div className="mb-3">
                 <label className="form-label">Language</label>
-                <input
-                  type="text"
-                  className="form-control"
+                <select
+                  className="form-select"
+                  id="language"
+                  name="language"
                   value={editFormData.language}
                   onChange={(e) =>
                     setEditFormData({
@@ -430,7 +473,19 @@ function AdminBooks() {
                       language: e.target.value,
                     })
                   }
-                />
+                >
+                  <option value="English">English</option>
+                  <option value="Spanish">Spanish</option>
+                  <option value="French">French</option>
+                  <option value="Lithuania">Lithuania</option>
+                  <option value="German">German</option>
+                  <option value="Italian">Italian</option>
+                  <option value="Portuguese">Portuguese</option>
+                  <option value="Russian">Russian</option>
+                  <option value="Chinese">Chinese</option>
+                  <option value="Japanese">Japanese</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
             </div>
             <div className="col-md-4">
@@ -452,18 +507,6 @@ function AdminBooks() {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Publisher</label>
-            <input
-              type="text"
-              className="form-control"
-              value={editFormData.publisher}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, publisher: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="mb-3">
             <label className="form-label">Description</label>
             <textarea
               className="form-control"
@@ -479,7 +522,6 @@ function AdminBooks() {
           </div>
         </form>
       </Modal>
-
       {/* Delete Book Modal */}
       <Modal
         show={showDeleteModal}

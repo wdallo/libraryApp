@@ -22,10 +22,9 @@ function Home() {
           <div className="card h-100 bg-dark text-white border-white border-2 shadow">
             <div className="card-body text-center">
               <i className="fas fa-book fa-3x text-white mb-3"></i>
-              <h5 className="card-title">Manage Books</h5>
+              <h5 className="card-title">Books Collection</h5>
               <p className="card-text">
-                Add, edit, and organize your book collection with detailed
-                information.
+                Browse the catalog and reserve books for pickup or reading.
               </p>
               <Link to="/books" className="btn btn-outline-light">
                 View Books

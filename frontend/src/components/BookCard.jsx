@@ -16,7 +16,6 @@ function BookCard({ book }) {
   });
 
   useEffect(() => {
-    // Only check status if user is logged in and has a valid token
     const user = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (user) {
       try {
@@ -27,10 +26,9 @@ function BookCard({ book }) {
           setIsCheckingStatus(true);
           checkReservationStatus();
         }
-      } catch {
-        // Invalid user data, don't check status
-      }
+      } catch {}
     }
+    // eslint-disable-next-line
   }, [book._id]);
 
   const showAlert = (title, message) => {
@@ -58,7 +56,6 @@ function BookCard({ book }) {
   };
 
   const checkReservationStatus = async () => {
-    // Get token from user object in localStorage/sessionStorage
     let user = localStorage.getItem("user") || sessionStorage.getItem("user");
     let token = "";
 
@@ -81,7 +78,6 @@ function BookCard({ book }) {
         },
       });
 
-      // Check if this book is already reserved by the current user
       const userReservations = response.data.reservations || [];
       const bookReservation = userReservations.find(
         (reservation) =>
@@ -97,7 +93,6 @@ function BookCard({ book }) {
   };
 
   const handleReserveBook = async () => {
-    // Get token from user object in localStorage/sessionStorage
     let user = localStorage.getItem("user") || sessionStorage.getItem("user");
     let token = "";
     if (user) {
@@ -111,7 +106,6 @@ function BookCard({ book }) {
       return;
     }
 
-    // Ask for confirmation before reserving
     showConfirm(
       "Confirm Reservation",
       "Do you really want to reserve this book?",
@@ -145,8 +139,20 @@ function BookCard({ book }) {
 
   return (
     <div className="book-outer mb-4">
-      <div className="book-card book-card-hover bg-dark border-white border-2 shadow">
-        <div className="book-image-wrap">
+      <div
+        className="card bg-dark text-white border-white border-2 shadow"
+        style={{ maxWidth: 320, minHeight: 480, borderRadius: 16 }}
+      >
+        <div
+          className="book-image-wrap card-img-top"
+          style={{
+            height: 320,
+            background: "#222",
+            borderBottom: "1px solid #444",
+            borderRadius: "16px 16px 0 0",
+            overflow: "hidden",
+          }}
+        >
           <img
             style={{
               width: "100%",
@@ -165,33 +171,37 @@ function BookCard({ book }) {
             }}
           />
         </div>
-        <div className="book-info d-flex flex-column p-3">
-          <h5 className="book-title text-white mb-1">
-            {book.title || "Untitled"}
-          </h5>
-          <p className="book-author mb-1">
+        <div className="card-body d-flex flex-column p-3">
+          <h5 className="card-title mb-1">{book.title || "Untitled"}</h5>
+          <p className="card-subtitle mb-1 text-light">
             <i className="fas fa-user me-1"></i>
             {book.author &&
             typeof book.author === "object" &&
-            book.author.firstname
+            book.author.firstName
               ? `${book.author.firstName} ${book.author.lastName || ""}`
               : typeof book.author === "string"
               ? book.author
               : "Unknown Author"}
           </p>
-          <p className="book-meta  mb-2">
-            <i className="fas fa-tag me-1"></i>
+          <p className="mb-2 text-light">
+            <br /> <b>Category</b>
+            <br />
             {book.category &&
             Array.isArray(book.category) &&
             book.category.length > 0
               ? book.category[0]?.name || "Uncategorized"
               : book.category?.name || "Uncategorized"}
-            <span className="mx-2">•</span>
-            <i className="fas fa-calendar me-1"></i>
-            {book.publishedYear || book.publishedDate || "Unknown Year"}
+            <br /> <br /> <b>Published</b>
+            <br />
+            {book.publishedYear
+              ? book.publishedYear
+              : book.publishedDate
+              ? new Date(book.publishedDate).getFullYear()
+              : "Unknown Year"}{" "}
+            year
           </p>
           <p
-            className="book-desc text-light flex-grow-1 mb-2"
+            className="card-text text-light flex-grow-1 mb-2"
             style={{ minHeight: 48 }}
           >
             {(book.description || "No description available.").slice(0, 100)}
@@ -253,50 +263,6 @@ function BookCard({ book }) {
         .book-outer {
           display: flex;
           justify-content: center;
-        }
-        .book-card {
-        color:#fff;
-          width: 100%;
-          max-width: 320px;
-          min-height: 480px;
-          border-radius: 16px;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
-          background: linear-gradient(135deg, #232526 0%, #414345 100%);
-        }
-        .book-card-hover:hover {
-          box-shadow: 0 0 0 4px #fff, 0 8px 32px 0 rgba(0,0,0,0.22);
-          transform: translateY(-4px) scale(1.03);
-          transition: box-shadow 0.2s, transform 0.2s;
-        }
-        .book-image-wrap {
-          width: 100%;
-          height: 320px;
-          background: #222;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-bottom: 1px solid #444;
-        }
-        .book-img {
-          width: auto;
-          height: 100%;
-          max-width: 100%;
-          object-fit: cover;
-          border-radius: 0 0 12px 12px;
-          box-shadow: 0 2px 12px 0 rgba(0,0,0,0.18);
-        }
-        .book-title {
-          font-size: 1.2rem;
-          font-weight: 700;
-        }
-        .book-author, .book-meta {
-          font-size: 0.95rem;
-        }
-        .book-desc {
-          font-size: 0.97rem;
         }
         .book-view-btn:hover {
           background: #fff !important;

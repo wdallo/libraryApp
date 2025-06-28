@@ -378,7 +378,7 @@ const getPendingReservations = asyncHandler(async (req, res) => {
 
   const reservations = await Reservation.find({ status: "pending" })
     .populate("book", "title author picture availableQuantity")
-    .populate("user", "username email firstname lastname")
+    .populate("user", "username email firstName lastName")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);

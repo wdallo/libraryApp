@@ -1,13 +1,23 @@
 import { Link } from "react-router-dom";
 
 function AuthorCard({ author }) {
-  // Debug: log the author data to see what ID fields are available
-  console.log("AuthorCard - author data:", author);
-  console.log("AuthorCard - author._id:", author._id);
-  console.log("AuthorCard - author.id:", author.id);
+  if (!author) {
+    return (
+      <div className="col-md-6 col-lg-4 mb-4">
+        <div
+          className="card h-100 border-0 shadow-lg author-card d-flex align-items-center justify-content-center"
+          style={{ minHeight: 300 }}
+        >
+          <div className="text-center w-100">
+            <p className="text-muted">Author data not available.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="col-md-6 col-lg-4 mb-4">
+    <div className="container mt-4 bg-white">
       <div
         className="card h-100 border-0 shadow-lg author-card"
         style={{
@@ -19,6 +29,7 @@ function AuthorCard({ author }) {
           border: "1px solid rgba(255,255,255,0.08)",
           fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
           transition: "transform 0.2s, box-shadow 0.2s",
+          marginTop: "50px",
         }}
       >
         <div className="card-body text-center d-flex flex-column">
@@ -27,7 +38,10 @@ function AuthorCard({ author }) {
             style={{ marginTop: "-60px" }}
           >
             <img
-              src={import.meta.env.VITE_API_URL + author.picture}
+              src={
+                import.meta.env.VITE_API_URL +
+                (author.picture || "/uploads/notfound.png")
+              }
               alt={`${author.firstName || "Unknown"} ${author.lastName || ""}`}
               className="rounded-circle border border-3 border-white shadow author-img"
               style={{
@@ -41,7 +55,8 @@ function AuthorCard({ author }) {
               }}
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = import.meta.env.VITE_API_URL + "/notfound.png";
+                e.target.src =
+                  import.meta.env.VITE_API_URL + "/uploads/notfound.png";
               }}
             />
           </div>
@@ -53,7 +68,7 @@ function AuthorCard({ author }) {
               letterSpacing: "0.01em",
             }}
           >
-            {author.firstName || "Unknown"} {author.lastName || ""}
+            {(author.firstName || "Unknown") + " " + (author.lastName || "")}
           </h5>
           <p
             className="card-text mb-1"
@@ -73,7 +88,7 @@ function AuthorCard({ author }) {
           </p>
           <div className="d-flex gap-2 justify-content-center mt-auto">
             <Link
-              to={`/authors/${author._id || author.id}/books`}
+              to={`/authors/${author._id || author.id || ""}/books`}
               className="btn btn-primary btn-sm px-3 rounded-pill shadow-sm text-decoration-none"
             >
               View Books Author

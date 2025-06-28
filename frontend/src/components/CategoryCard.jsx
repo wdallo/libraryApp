@@ -2,7 +2,22 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLayerGroup } from "@fortawesome/free-solid-svg-icons";
 
-function CategoryCard({ category }) {
+function CategoryCard({ category, bookCount }) {
+  // Safety check for category object
+  if (!category || typeof category !== "object") {
+    return (
+      <div className="col-md-6 col-lg-4 mb-4">
+        <div className="card h-100 bg-dark text-white border-white border-2 shadow-sm">
+          <div className="card-body d-flex align-items-center justify-content-center">
+            <p className="text-muted text-center">
+              Category data not available
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="col-md-6 col-lg-4 mb-4">
       <div className="card h-100 bg-dark text-white border-white border-2 shadow-sm category-card-hover">
@@ -16,25 +31,34 @@ function CategoryCard({ category }) {
                 <FontAwesomeIcon icon={faLayerGroup} size="lg" />
               </span>
               <h5 className="card-title text-white mb-0">
-                {category?.name || "Unnamed Category"}
+                {String(category?.name || "Unnamed Category")}
               </h5>
             </div>
             <span className="badge bg-gradient bg-light text-dark border border-dark px-3 py-2 fs-6 shadow-sm">
               <i className="fas fa-book me-1 text-primary"></i>
-              {category?.bookCount ?? 0} book
-              {category?.bookCount === 1 ? "" : "s"}
+              {typeof (bookCount ?? category?.bookCount) === "number"
+                ? bookCount ?? category?.bookCount ?? 0
+                : 0}{" "}
+              book
+              {(typeof (bookCount ?? category?.bookCount) === "number"
+                ? bookCount ?? category?.bookCount ?? 0
+                : 0) === 1
+                ? ""
+                : "s"}
             </span>
           </div>
           <p className="card-text text-light mb-4" style={{ minHeight: 48 }}>
             {category?.description
-              ? category.description.length > 120
-                ? category.description.slice(0, 120) + "…"
-                : category.description
+              ? String(category.description).length > 120
+                ? String(category.description).slice(0, 120) + "…"
+                : String(category.description)
               : "No description available."}
           </p>
           <div className="d-flex gap-2 mt-auto">
             <Link
-              to={`/categories/${category._id || category.id}/books`}
+              to={`/categories/${
+                category?._id || category?.id || "unknown"
+              }/books`}
               className="btn btn-outline-light btn-sm text-decoration-none flex-fill fw-bold category-view-btn"
             >
               <i className="fas fa-eye me-1"></i> View Books

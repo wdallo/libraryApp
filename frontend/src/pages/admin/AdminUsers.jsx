@@ -5,6 +5,7 @@ import Modal from "../../components/Modal";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBackward,
   faBan,
   faCheck,
   faMagnifyingGlass,
@@ -203,9 +204,8 @@ function AdminUsers() {
           </div>
         </div>
         <div className="col-md-3 d-flex justify-content-end">
-          <Link to="/admin/dashboard" className="btn btn-outline-secondary">
-            <i className="bi bi-arrow-left me-2"></i>
-            Back to Admin
+          <Link to={-1} className="btn btn-outline-secondary">
+            <FontAwesomeIcon icon={faBackward} /> Go Back
           </Link>
         </div>
       </div>

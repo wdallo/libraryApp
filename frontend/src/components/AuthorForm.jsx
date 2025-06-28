@@ -1,5 +1,8 @@
 import { useState } from "react";
 import apiClient from "../utils/apiClient";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBackward } from "@fortawesome/free-solid-svg-icons";
 
 function AuthorForm() {
   const [formData, setFormData] = useState({
@@ -67,8 +70,11 @@ function AuthorForm() {
       <div className="row justify-content-center">
         <div className="col-md-8">
           <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Add New Author</h5>
+            <div className="card-header d-flex justify-content-between align-items-center">
+              <h5 className="card-title mb-0">Add New Book</h5>
+              <Link to={-1} className="btn btn-dark">
+                <FontAwesomeIcon icon={faBackward} /> Go Back
+              </Link>
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>

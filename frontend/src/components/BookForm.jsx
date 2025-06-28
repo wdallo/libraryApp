@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import apiClient from "../utils/apiClient";
 import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBackward } from "@fortawesome/free-solid-svg-icons";
 
 function BookForm() {
   const [formData, setFormData] = useState({
@@ -205,8 +207,8 @@ function BookForm() {
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">Add New Book</h5>
-              <Link to="/admin/dashboard" className="btn btn-dark">
-                &larr; Back to Admin Dashboard
+              <Link to={-1} className="btn btn-dark">
+                <FontAwesomeIcon icon={faBackward} /> Go Back
               </Link>
             </div>
             <div className="card-body">

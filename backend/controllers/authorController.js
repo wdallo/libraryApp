@@ -77,14 +77,14 @@ const getAuthorById = asyncHandler(async (req, res) => {
  * POST /api/authors
  */
 const createAuthor = asyncHandler(async (req, res) => {
-  const { firstname, lastname, birthday, bio } = req.body;
+  const { firstName, lastName, birthday, bio } = req.body;
   let picture = null;
 
   if (req.file) {
     picture = `/uploads/authors/${req.file.filename}`;
   }
 
-  if (!firstname || !lastname) {
+  if (!firstName || !lastName) {
     res.status(400);
     throw new Error("First name and last name are required");
   }
@@ -96,8 +96,8 @@ const createAuthor = asyncHandler(async (req, res) => {
   }
 
   const author = new Author({
-    firstname,
-    lastname,
+    firstName,
+    lastName,
     birthday,
     picture,
     bio,
@@ -112,7 +112,7 @@ const createAuthor = asyncHandler(async (req, res) => {
  * PUT /api/authors/:id
  */
 const updateAuthor = asyncHandler(async (req, res) => {
-  const { firstname, lastname, birthday, bio } = req.body;
+  const { firstName, lastName, birthday, bio } = req.body;
   let picture = null;
 
   if (req.file) {
@@ -133,8 +133,8 @@ const updateAuthor = asyncHandler(async (req, res) => {
   }
 
   // Update fields if provided
-  if (firstname) author.firstname = firstname;
-  if (lastname) author.lastname = lastname;
+  if (firstName) author.firstName = firstName;
+  if (lastName) author.lastName = lastName;
   if (birthday) author.birthday = birthday;
   if (bio) author.bio = bio;
   if (picture) author.picture = picture;

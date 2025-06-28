@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import apiClient from "../../utils/apiClient";
 import Loading from "../../components/Loading";
 import Modal from "../../components/Modal";
+import { faBackward } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function AdminReservations() {
   const [reservations, setReservations] = useState([]);
@@ -194,9 +196,8 @@ function AdminReservations() {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1>Manage Reservations</h1>
-        <Link to="/admin/dashboard" className="btn btn-outline-secondary">
-          <i className="bi bi-arrow-left me-2"></i>
-          Back to Admin
+        <Link to={-1} className="btn btn-outline-secondary">
+          <FontAwesomeIcon icon={faBackward} /> Go Back
         </Link>
       </div>
 
