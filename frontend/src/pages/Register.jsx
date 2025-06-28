@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -36,10 +36,7 @@ function Register() {
     }
     setLoading(true);
     try {
-      const response = await axios.post(
-        import.meta.env.VITE_API_URL + "/api/users/register",
-        formData
-      );
+      const response = await apiClient.post("/api/users/register", formData);
       console.log("Registration success:", response.data);
     } catch (err) {
       setError(

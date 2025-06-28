@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import CategoryCard from "../components/CategoryCard";
 
@@ -10,7 +10,7 @@ function Categories() {
 
   useEffect(() => {
     setLoading(true);
-    axios
+    apiClient
       .get(import.meta.env.VITE_API_URL + "/api/categories")
       .then((res) => {
         console.log("API categories response:", res.data); // <--- add this line

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import BookCard from "../components/BookCard";
 
@@ -18,7 +18,7 @@ function Books() {
     });
     console.log("Books.jsx - Full API URL:", apiUrl);
 
-    axios
+    apiClient
       .get(apiUrl)
       .then((res) => {
         console.log("Books.jsx - Success! Status:", res.status);

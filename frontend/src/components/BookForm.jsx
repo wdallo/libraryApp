@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import { useNavigate } from "react-router-dom";
 
 function BookForm() {
@@ -115,16 +115,12 @@ function BookForm() {
       console.log("BookForm - Token:", token ? "Present" : "Missing");
       console.log("BookForm - BookCover:", bookCover);
 
-      const response = await axios.post(
-        import.meta.env.VITE_API_URL + "/api/books",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            authorization: token ? `Bearer ${token}` : "",
-          },
-        }
-      );
+      const response = await apiClient.post("/api/books", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          authorization: token ? `Bearer ${token}` : "",
+        },
+      });
 
       console.log("BookForm - Success response:", response.data);
       setSuccess("Book added successfully!");

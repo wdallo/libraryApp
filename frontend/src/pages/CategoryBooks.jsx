@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 
 function CategoryBooks() {
@@ -16,8 +16,8 @@ function CategoryBooks() {
         console.log("Fetching category with ID:", categoryId);
 
         // Fetch category details (includes books)
-        const categoryResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/categories/${categoryId}`
+        const categoryResponse = await apiClient.get(
+          `/api/categories/${categoryId}`
         );
         console.log("Category response:", categoryResponse.data);
 

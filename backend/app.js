@@ -35,8 +35,47 @@ const corsOptions = {
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later.",
+  max: 10000, // limit each IP to 5 requests per windowMs for testing
+  message: {
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: "15 minutes",
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+
+  handler: (req, res) => {
+    console.log(`Rate limit exceeded for IP: ${req.ip}`);
+    const userAgent = req.get("User-Agent") || "";
+
+    // Check if the request is from a browser or terminal/API client
+    const isBrowser =
+      userAgent.includes("Mozilla") ||
+      userAgent.includes("Chrome") ||
+      userAgent.includes("Safari") ||
+      userAgent.includes("Firefox") ||
+      userAgent.includes("Edge");
+
+    if (isBrowser) {
+      // For browser users - they will be redirected by the frontend interceptor
+      res.status(429).json({
+        error: "Too many requests from this IP, please try again later.",
+        retryAfter: "15 minutes",
+        userType: "browser",
+      });
+    } else {
+      // For terminal/API users - provide a different help URL
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      res.status(429).json({
+        error: "Too many requests from this IP, please try again later.",
+        retryAfter: "15 minutes",
+        userType: "terminal",
+        helpUrl: `${baseUrl}/rate-limits.html`,
+        message: `For rate limit information and API usage guidelines, visit: ${baseUrl}/rate-limits.html`,
+        contact:
+          "If you need higher rate limits, contact support@yourlibrary.com",
+      });
+    }
+  },
 });
 
 // Security middleware
@@ -46,6 +85,9 @@ app.use(limiter);
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from public directory (for help pages)
+app.use(express.static(path.join(__dirname, "public")));
 
 // Serve static files with permissive CORS headers
 app.use(
@@ -66,6 +108,24 @@ app.use(
   },
   express.static(path.join(__dirname, "uploads"))
 );
+
+// Test endpoint to verify rate limiting behavior
+app.get("/api/test-rate-limit", limiter, (req, res) => {
+  const userAgent = req.get("User-Agent") || "";
+  const isBrowser =
+    userAgent.includes("Mozilla") ||
+    userAgent.includes("Chrome") ||
+    userAgent.includes("Safari") ||
+    userAgent.includes("Firefox") ||
+    userAgent.includes("Edge");
+
+  res.json({
+    message: "Request successful",
+    userAgent: userAgent,
+    detectedAs: isBrowser ? "browser" : "terminal",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Routes
 app.use("/api/authors", authorRoutes);

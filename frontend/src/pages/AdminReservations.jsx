@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import { Link } from "react-router-dom";
 import Loading from "../components/Loading";
 
@@ -30,14 +30,11 @@ function AdminReservations() {
 
     try {
       const params = statusFilter !== "all" ? `?status=${statusFilter}` : "";
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/reservations/admin${params}`,
-        {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiClient.get(`/api/reservations/admin${params}`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
       setReservations(response.data.reservations || []);
     } catch (error) {
       console.error("Error fetching reservations:", error);
@@ -62,10 +59,8 @@ function AdminReservations() {
     if (!confirm("Are you sure you want to approve this book return?")) return;
 
     try {
-      const response = await axios.put(
-        `${
-          import.meta.env.VITE_API_URL
-        }/api/reservations/${reservationId}/approve-return`,
+      const response = await apiClient.put(
+        `/api/reservations/${reservationId}/approve-return`,
         {},
         {
           headers: {

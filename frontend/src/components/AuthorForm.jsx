@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 
 function AuthorForm() {
   const [formData, setFormData] = useState({
@@ -46,7 +46,7 @@ function AuthorForm() {
           token = user.token || user.accessToken || user.jwt || "";
         } catch {}
       }
-      await axios.post(import.meta.env.VITE_API_URL + "/api/authors", data, {
+      await apiClient.post("/api/authors", data, {
         headers: {
           "Content-Type": "multipart/form-data",
           authorization: token ? `Bearer ${token}` : "",
