@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import apiClient from "../utils/apiClient";
+import Modal from "../components/Modal";
 
 function Register() {
   const [formData, setFormData] = useState({
-    userName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [showTerms, setShowTerms] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +40,9 @@ function Register() {
     setLoading(true);
     try {
       const response = await apiClient.post("/api/users/register", formData);
+      setError("");
+      setShowSuccess(true);
+
       console.log("Registration success:", response.data);
     } catch (err) {
       setError(
@@ -51,28 +57,46 @@ function Register() {
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-6 col-lg-5">
-          <div className="card shadow">
+          <div className={`card shadow ${showSuccess ? "d-none" : ""}`}>
             <div className="card-body p-5">
               <div className="text-center mb-4">
                 <h3 className="card-title">Create Account</h3>
                 <p className="text-muted">Join our library community</p>
               </div>
-
+              {error && (
+                <div className="alert alert-danger text-center">{error}</div>
+              )}
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label htmlFor="userName" className="form-label">
-                    Username
+                  <label htmlFor="firstName" className="form-label">
+                    Firstname:
                   </label>
                   <input
                     type="text"
                     className="form-control"
-                    id="userName"
-                    name="userName"
-                    value={formData.userName}
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
                     onChange={handleChange}
                     required
-                    placeholder="Choose a username"
-                    autoComplete="username"
+                    placeholder="Enter Your Firstname"
+                    autoComplete="firstName"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="lastName" className="form-label">
+                    Lastname:
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter Your Lastname"
+                    autoComplete="lastName"
                   />
                 </div>
 
@@ -223,9 +247,6 @@ function Register() {
                   </div>
                 )}
 
-                {error && (
-                  <div className="alert alert-danger text-center">{error}</div>
-                )}
                 {loading && (
                   <div
                     className="d-flex justify-content-center align-items-center min-vh-100 bg-white position-fixed top-0 start-0 w-100 h-100"
@@ -262,6 +283,30 @@ function Register() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <Modal
+        show={showSuccess}
+        onHide={() => {
+          setShowSuccess(false);
+          window.location.replace("/login");
+        }}
+        title="Registration Successful!"
+        type="alert"
+      >
+        <div className="text-center">
+          <div className="mb-3">
+            <i
+              className="fas fa-check-circle text-success"
+              style={{ fontSize: "3rem" }}
+            ></i>
+          </div>
+          <p className="mb-0">
+            Your account has been created successfully! You can now log in with
+            your credentials.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

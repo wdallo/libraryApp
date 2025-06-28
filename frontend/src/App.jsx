@@ -8,12 +8,18 @@ import { useEffect } from "react";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Books from "./pages/Books";
+import BookView from "./pages/BookView";
+
 import Authors from "./pages/Authors";
 import AuthorBooks from "./pages/AuthorBooks";
 import Categories from "./pages/Categories";
 import CategoryBooks from "./pages/CategoryBooks";
 import MyReservations from "./pages/MyReservations";
-import AdminReservations from "./pages/AdminReservations";
+import AdminReservations from "./pages/admin/AdminReservations";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminBooks from "./pages/admin/AdminBooks";
+import AdminCategories from "./pages/admin/AdminCategories";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import Login from "./pages/Login";
@@ -46,6 +52,8 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/books" element={<Books />} />
+
+        <Route path="/books/:bookId" element={<BookView />} />
         <Route
           path="/books/new"
           element={
@@ -86,6 +94,38 @@ function AppContent() {
           }
         />
         <Route
+          path="/admin/dashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminProtectedRoute>
+              <AdminUsers />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/books"
+          element={
+            <AdminProtectedRoute>
+              <AdminBooks />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/categories"
+          element={
+            <AdminProtectedRoute>
+              <AdminCategories />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/reservations"
           element={
             <AdminProtectedRoute>
@@ -96,6 +136,7 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/rate-limit" element={<RateLimitPage />} />
+        <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>

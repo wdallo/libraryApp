@@ -157,7 +157,7 @@ function MyReservations() {
       {reservations.length === 0 ? (
         <div className="text-center">
           <p>You don't have any book reservations yet.</p>
-          <Link to="/books" className="btn btn-primary">
+          <Link to="/books" className="btn btn-dark">
             Browse Books
           </Link>
         </div>

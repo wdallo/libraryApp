@@ -63,7 +63,9 @@ function Login() {
                 <h3 className="card-title">Login</h3>
                 <p className="text-muted">Sign in to your account</p>
               </div>
-
+              {error && (
+                <div className="alert alert-danger text-center">{error}</div>
+              )}
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label">
@@ -78,7 +80,7 @@ function Login() {
                     onChange={handleChange}
                     required
                     placeholder="Enter your email"
-                    autoComplete="username"
+                    autoComplete="email"
                   />
                 </div>
 
@@ -141,7 +143,6 @@ function Login() {
         </div>
       </div>
 
-      {error && <div className="alert alert-danger text-center">{error}</div>}
       {loading && (
         <div
           className="d-flex justify-content-center align-items-center min-vh-100 bg-white position-fixed top-0 start-0 w-100 h-100"

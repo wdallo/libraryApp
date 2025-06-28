@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import AuthorCard from "../components/AuthorCard";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 function Authors() {
   const [authors, setAuthors] = useState([]);
@@ -47,7 +49,12 @@ function Authors() {
   return (
     <div className="container mt-4 bg-white">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="text-black">Authors</h2>
+        <h2 className="text-black">
+          <span role="img" aria-label="author">
+            🧑‍💼
+          </span>{" "}
+          Authors
+        </h2>
       </div>
       {/* Search */}
       <div className="row mb-4">
@@ -59,23 +66,29 @@ function Authors() {
               placeholder="Search authors by name..."
             />
             <button className="btn btn-outline-dark" type="button">
-              <i className="fas fa-search"></i>
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
             </button>
           </div>
         </div>
       </div>
       {/* Authors List */}
       <div className="row">
-        <div className="mb-5"></div>
-
-        {authors.map((author) => (
-          <AuthorCard
-            key={author.id || `${author.firstname}-${author.lastname}`}
-            author={author}
-          />
-        ))}
+        {authors.length === 0 ? (
+          <div className="col-12 text-center py-5">
+            <p className="text-muted fs-5 mb-0">No Authors found.</p>
+          </div>
+        ) : (
+          authors.map((author) => (
+            <div
+              className="col-md-4 mb-4"
+              key={author.id || `${author.firstName}-${author.lastName}`}
+            >
+              <AuthorCard author={author} />
+            </div>
+          ))
+        )}
       </div>
-      {/* Add more authors message */}
+
       <div className="text-center mt-4">
         <p className="text-muted">Showing {authors.length} authors</p>
       </div>

@@ -76,7 +76,9 @@ function AdminProtectedRoute({ children }) {
                   <div>
                     <p className="mb-3">
                       You are logged in as:{" "}
-                      <strong>{user.username || user.email}</strong>
+                      <strong>
+                        {user.firstName + " " + user.lastName || user.email}
+                      </strong>
                     </p>
                     <p className="mb-3">
                       Contact your system administrator to request admin access.

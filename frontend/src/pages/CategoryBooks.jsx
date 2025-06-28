@@ -118,8 +118,8 @@ function CategoryBooks() {
                   <p className="card-text text-muted">
                     <small>
                       <i className="fas fa-user me-2"></i>
-                      {book.author?.firstname
-                        ? `${book.author.firstname} ${book.author.lastname}`
+                      {book.author?.firstName
+                        ? `${book.author.firstName} ${book.author.lastName}`
                         : book.author || "Unknown Author"}
                     </small>
                   </p>

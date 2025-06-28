@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const mongoose = require("mongoose");
 const Book = require("../models/Book");
 const BookCategory = require("../models/BookCategory");
 
@@ -71,78 +72,96 @@ const getBooks = asyncHandler(async (req, res) => {
  * Update Book (admin only)
  */
 const updateBook = asyncHandler(async (req, res) => {
-  const { title, description, category, time } = req.body;
-  let picture = null;
-  if (req.file) {
-    picture = `/uploads/books/${req.file.filename}`;
-  }
+  try {
+    const book = await Book.findById(req.params.id);
 
-  const book = await Book.findById(req.params.id);
-  if (!book) {
-    res.status(404);
-    throw new Error("Book was not found");
-  }
-  // Only admin can update
-  if (req.user.role !== "admin") {
-    res.status(403);
-    throw new Error("Not authorized to update this book");
-  }
-  if (title) book.title = title;
-  if (description) book.description = description;
-  if (category) book.category = category;
-  if (time) book.time = time;
-  if (picture) book.picture = picture;
-  // Allow admin to set approved status (accept boolean or string)
-  if (typeof approved !== "undefined") {
-    // Accept boolean, "approved", "pending", "true", "false"
-    if (typeof approved === "boolean") {
-      book.approved = approved;
-    } else if (typeof approved === "string") {
-      if (approved === "approved" || approved === "true") {
-        book.approved = true;
-      } else if (approved === "pending" || approved === "false") {
-        book.approved = false;
-      }
-    } else {
-      // fallback: treat anything else as false
-      book.approved = false;
+    if (!book) {
+      res.status(404);
+      throw new Error("Book not found");
     }
-  }
 
-  await book.save();
-  // Populate category with name for response
-  await book.populate("category", "name");
-  res.json({ message: "Book updated", book });
+    const {
+      title,
+      author,
+      category,
+      description,
+      pages,
+      language,
+      publisher,
+      publishedDate,
+      totalQuantity,
+      availableQuantity,
+    } = req.body;
+
+    // Update book fields
+    book.title = title || book.title;
+    book.author = author || book.author;
+    book.category = category || book.category;
+    book.description = description || book.description;
+    book.pages = pages || book.pages;
+    book.language = language || book.language;
+    book.publisher = publisher || book.publisher;
+    book.publishedDate = publishedDate || book.publishedDate;
+    book.totalQuantity =
+      totalQuantity !== undefined
+        ? parseInt(totalQuantity)
+        : book.totalQuantity;
+    book.availableQuantity =
+      availableQuantity !== undefined
+        ? parseInt(availableQuantity)
+        : book.availableQuantity;
+
+    const updatedBook = await book.save();
+    await updatedBook.populate("category", "name");
+
+    res.json(updatedBook);
+  } catch (error) {
+    res.status(500);
+    throw new Error("Error updating book");
+  }
 });
 
 const deleteBook = asyncHandler(async (req, res) => {
-  const book = await Book.findById(req.params.id);
-  if (!book) {
-    res.status(404);
-    throw new Error("book not found");
-  }
-  // Only admin can delete
-  if (req.user.role !== "admin") {
-    res.status(403);
-    throw new Error("Not authorized to delete this book");
-  }
+  try {
+    const book = await Book.findById(req.params.id);
 
-  // Delete photo file if exists
-  if (book.picture) {
-    // Remove leading slash if present from /uploads/books
-    const pictureRelativePath = book.picture.startsWith("/")
-      ? book.picture.slice(1)
-      : book.picture;
-    const picturePath = path.join(__dirname, "..", pictureRelativePath);
-    fs.unlink(picturePath, (err) => {
-      if (err) {
-        console.error("Failed to delete picture:", err);
-      }
+    if (!book) {
+      res.status(404);
+      throw new Error("Book not found");
+    }
+
+    // Check if book has active reservations
+    const Reservation = require("../models/Reservation");
+    const activeReservations = await Reservation.countDocuments({
+      book: book._id,
+      status: { $in: ["pending", "active"] },
     });
-  }
 
-  await book.deleteOne();
-  res.json({ message: "book and photo deleted" });
+    if (activeReservations > 0) {
+      res.status(400);
+      throw new Error("Cannot delete book with active reservations");
+    }
+
+    // Delete the book file if it exists
+    if (book.picture) {
+      const imagePath = path.join(
+        __dirname,
+        "..",
+        "uploads",
+        "books",
+        book.picture
+      );
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
+    await book.deleteOne();
+    res.json({ message: "Book deleted successfully" });
+  } catch (error) {
+    res.status(500);
+    throw new Error("Error deleting book");
+  }
 });
 
 /**
@@ -150,17 +169,38 @@ const deleteBook = asyncHandler(async (req, res) => {
  */
 const getBookById = asyncHandler(async (req, res) => {
   const book = await Book.findOne({ _id: req.params.id })
+    .populate("author", "firstname lastname")
     .populate("category", "name")
-    .populate("createdBy", "userName email"); // <-- populate creator
+    .populate("createdBy", "username email");
+
   if (!book) {
     return res.status(404).json({ message: "Book was not found" });
   }
-  res.json(book);
+
+  // Ensure category is always an array for consistency
+  let bookObj = book.toObject();
+  if (!Array.isArray(bookObj.category)) {
+    bookObj.category = bookObj.category ? [bookObj.category] : [];
+  }
+
+  res.json(bookObj);
 });
 
 // Admin: create book
 const createBook = asyncHandler(async (req, res) => {
-  const { title, author, description, category, releaseYear } = req.body;
+  const {
+    title,
+    author,
+    description,
+    category,
+    releaseYear,
+    publishedDate,
+    isbn,
+    pages,
+    language,
+    totalQuantity,
+    availableQuantity,
+  } = req.body;
 
   if (!title || !author) {
     res.status(400);
@@ -187,8 +227,18 @@ const createBook = asyncHandler(async (req, res) => {
     title,
     author, // Author ObjectId from frontend dropdown
     description,
-    category: [category], // Convert single category to array
-    releaseYear,
+    category: Array.isArray(category) ? category : [category], // Ensure category is always an array
+    releaseYear: releaseYear || publishedDate,
+    publishedDate: publishedDate || releaseYear,
+    isbn,
+    pages: pages ? parseInt(pages) : undefined,
+    language: language || "English",
+    totalQuantity: totalQuantity ? parseInt(totalQuantity) : 1,
+    availableQuantity: availableQuantity
+      ? parseInt(availableQuantity)
+      : totalQuantity
+      ? parseInt(totalQuantity)
+      : 1,
     picture,
     createdBy: req.user._id,
   });

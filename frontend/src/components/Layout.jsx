@@ -102,7 +102,9 @@ function Layout({ children }) {
                     aria-expanded="false"
                   >
                     <i className="fas fa-user me-2"></i>
-                    {user.userName || user.email || "User"}
+                    {user.firstName + " " + user.lastName ||
+                      user.email ||
+                      "User"}
                   </a>
                   <ul
                     className="dropdown-menu dropdown-menu-end"
@@ -125,33 +127,9 @@ function Layout({ children }) {
                           <hr className="dropdown-divider" />
                         </li>
                         <li>
-                          <Link className="dropdown-item" to="/books/new">
-                            <FontAwesomeIcon icon={faPlus} className="me-2" />
-                            Add Book
-                          </Link>
-                        </li>
-                        <li>
-                          <Link className="dropdown-item" to="/categories/new">
-                            <FontAwesomeIcon icon={faPlus} className="me-2" />
-                            Add Category
-                          </Link>
-                        </li>
-                        <li>
-                          <Link className="dropdown-item" to="/authors/new">
-                            <FontAwesomeIcon icon={faPlus} className="me-2" />
-                            Add Author
-                          </Link>
-                        </li>
-                        <li>
-                          <hr className="dropdown-divider" />
-                        </li>
-                        <li>
-                          <Link
-                            className="dropdown-item"
-                            to="/admin/reservations"
-                          >
-                            <i className="fas fa-tasks me-2"></i>
-                            Manage Reservations
+                          <Link className="dropdown-item" to="/admin/dashboard">
+                            <i className="fas fa-tachometer-alt me-2"></i>
+                            Admin Dashboard
                           </Link>
                         </li>
                       </>

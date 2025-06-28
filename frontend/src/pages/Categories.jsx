@@ -47,18 +47,33 @@ function Categories() {
   return (
     <div className="container mt-4 bg-white">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="text-black">Book Categories</h2>
+        <h2 className="text-black">
+          <span
+            role="img"
+            aria-label="Categories"
+            style={{ marginRight: "0.5rem" }}
+          >
+            🗂️
+          </span>
+          Book Categories
+        </h2>
       </div>
 
       {/* Categories Grid */}
       <div className="row">
-        {categories.map((category) => (
-          <CategoryCard
-            key={category._id || category.id || category.name}
-            category={category}
-            bookCount={getBookCount(category)}
-          />
-        ))}
+        {categories.length === 0 ? (
+          <div className="col-12 text-center py-5">
+            <p className="text-muted fs-5 mb-0">No Categories found.</p>
+          </div>
+        ) : (
+          categories.map((category) => (
+            <CategoryCard
+              key={category._id || category.id || category.name}
+              category={category}
+              bookCount={getBookCount(category)}
+            />
+          ))
+        )}
       </div>
 
       {/* Category Stats */}

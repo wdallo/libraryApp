@@ -6,9 +6,9 @@ const { validateEmail } = require("../functions/emailRegix");
 
 // Register a new user
 const registerUser = asyncHandler(async (req, res) => {
-  const { userName, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
 
-  if (!userName || !email || !password) {
+  if (!firstName || !lastName || !email || !password) {
     res.status(400);
     throw new Error("Please fill all the fields");
   }
@@ -17,12 +17,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("Please enter a valid email address");
   }
 
-  // Check for existing username or email
-  const userNameExists = await User.findOne({ userName });
-  if (userNameExists) {
-    res.status(400);
-    throw new Error("Username already exists");
-  }
+  // Check for existing email
   const emailExists = await User.findOne({ email });
   if (emailExists) {
     res.status(400);
@@ -33,7 +28,8 @@ const registerUser = asyncHandler(async (req, res) => {
   const hashedPassword = await bcryptjs.hash(password, salt);
 
   const user = await User.create({
-    userName,
+    firstName,
+    lastName,
     email,
     password: hashedPassword,
     role: "user",
@@ -45,7 +41,8 @@ const registerUser = asyncHandler(async (req, res) => {
   if (user) {
     res.status(201).json({
       _id: user.id,
-      userName: user.userName,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.role,
       status: user.status,
@@ -73,7 +70,8 @@ const loginUser = asyncHandler(async (req, res) => {
     res.json({
       message: "Login successfully",
       _id: user.id,
-      userName: user.userName,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.role,
       status: user.status,
@@ -94,7 +92,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 // Update user info
 const updateUser = asyncHandler(async (req, res) => {
-  const { userName, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
   const user = await User.findById(req.params.id);
 
   if (!user) {
@@ -105,7 +103,8 @@ const updateUser = asyncHandler(async (req, res) => {
     res.status(403);
     throw new Error("Not authorized to update this user");
   }
-  if (userName) user.userName = userName;
+  if (firstName) user.firstName = firstName;
+  if (lastName) user.lastName = lastName;
   if (email) user.email = email;
   if (password) {
     const salt = await bcryptjs.genSalt(10);
@@ -122,7 +121,8 @@ const updateUser = asyncHandler(async (req, res) => {
   await user.save();
   res.json({
     _id: user.id,
-    userName: user.userName,
+    firstName: user.firstName,
+    lastName: user.lastName,
     email: user.email,
     role: user.role,
     status: user.status,

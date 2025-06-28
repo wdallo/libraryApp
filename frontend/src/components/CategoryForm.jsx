@@ -1,5 +1,6 @@
 import { useState } from "react";
 import apiClient from "../utils/apiClient";
+import { Link } from "react-router-dom";
 
 function CategoryForm() {
   const [formData, setFormData] = useState({
@@ -65,8 +66,11 @@ function CategoryForm() {
       <div className="row justify-content-center">
         <div className="col-md-8">
           <div className="card">
-            <div className="card-header">
+            <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">Add New Category</h5>
+              <Link to="/admin/dashboard" className="btn btn-dark">
+                &larr; Back to Admin Dashboard
+              </Link>
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
