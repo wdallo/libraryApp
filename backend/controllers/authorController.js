@@ -16,16 +16,16 @@ const getAuthors = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.search) {
     filter.$or = [
-      { firstname: { $regex: req.query.search, $options: "i" } },
-      { lastname: { $regex: req.query.search, $options: "i" } },
+      { firstName: { $regex: req.query.search, $options: "i" } },
+      { lastName: { $regex: req.query.search, $options: "i" } },
     ];
   }
 
   // Sorting
   let sort = {};
   if (req.query.sort) {
-    if (req.query.sort === "name-asc") sort.firstname = 1;
-    else if (req.query.sort === "name-desc") sort.firstname = -1;
+    if (req.query.sort === "name-asc") sort.firstName = 1;
+    else if (req.query.sort === "name-desc") sort.firstName = -1;
     else if (req.query.sort === "created-asc") sort.createdAt = 1;
     else if (req.query.sort === "created-desc") sort.createdAt = -1;
   }

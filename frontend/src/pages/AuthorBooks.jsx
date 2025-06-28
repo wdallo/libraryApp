@@ -98,7 +98,7 @@ function AuthorBooks() {
                 </Link>
               </li>
               <li className="breadcrumb-item active" aria-current="page">
-                {author.firstname} {author.lastname}
+                {author.firstName} {author.lastName}
               </li>
             </ol>
           </nav>
@@ -109,7 +109,7 @@ function AuthorBooks() {
         <div className="col-md-3 text-center">
           <img
             src={import.meta.env.VITE_API_URL + author.picture}
-            alt={`${author.firstname} ${author.lastname}`}
+            alt={`${author.firstName} ${author.lastName}`}
             className="rounded-circle border border-3 border-dark mb-3"
             style={{
               width: "150px",
@@ -124,7 +124,7 @@ function AuthorBooks() {
         </div>
         <div className="col-md-9">
           <h1 className="text-black mb-2">
-            {author.firstname} {author.lastname}
+            {author.firstName} {author.lastName}
           </h1>
           <p className="text-muted mb-2">
             <strong>Born:</strong>{" "}

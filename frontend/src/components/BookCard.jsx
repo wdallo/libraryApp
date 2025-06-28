@@ -174,7 +174,7 @@ function BookCard({ book }) {
             {book.author &&
             typeof book.author === "object" &&
             book.author.firstname
-              ? `${book.author.firstname} ${book.author.lastname || ""}`
+              ? `${book.author.firstName} ${book.author.lastName || ""}`
               : typeof book.author === "string"
               ? book.author
               : "Unknown Author"}

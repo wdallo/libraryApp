@@ -10,7 +10,11 @@ const bookSchema = new mongoose.Schema(
     },
     description: { type: String },
     picture: { type: String }, // URL or filename
-    releaseYear: { type: Date, required: true },
+    publishedDate: { type: Date }, // Alternative to releaseYear for better date handling
+    pages: { type: Number },
+    language: { type: String, default: "Unknown" },
+    totalQuantity: { type: Number, default: 1 },
+    availableQuantity: { type: Number, default: 1 },
     category: [
       {
         type: mongoose.Schema.Types.ObjectId,

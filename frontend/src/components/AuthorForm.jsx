@@ -3,8 +3,8 @@ import apiClient from "../utils/apiClient";
 
 function AuthorForm() {
   const [formData, setFormData] = useState({
-    firstname: "",
-    lastname: "",
+    firstName: "",
+    lastName: "",
     birthday: "",
     bio: "",
   });
@@ -53,7 +53,7 @@ function AuthorForm() {
         },
       });
       setSuccess("Author added successfully!");
-      setFormData({ firstname: "", lastname: "", birthday: "", bio: "" });
+      setFormData({ firstName: "", lastName: "", birthday: "", bio: "" });
       setImage(null);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to add author.");
@@ -74,30 +74,30 @@ function AuthorForm() {
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label htmlFor="firstname" className="form-label">
+                    <label htmlFor="firstName" className="form-label">
                       First Name *
                     </label>
                     <input
                       type="text"
                       className="form-control"
-                      id="firstname"
-                      name="firstname"
-                      value={formData.firstname}
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
                       onChange={handleChange}
                       required
                       placeholder="Enter first name"
                     />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label htmlFor="lastname" className="form-label">
+                    <label htmlFor="lastName" className="form-label">
                       Last Name *
                     </label>
                     <input
                       type="text"
                       className="form-control"
-                      id="lastname"
-                      name="lastname"
-                      value={formData.lastname}
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
                       onChange={handleChange}
                       required
                       placeholder="Enter last name"

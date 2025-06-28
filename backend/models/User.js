@@ -2,10 +2,13 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    userName: {
+    firstName: {
       type: String,
-      required: [true, "Please enter your username"],
-      unique: true,
+      required: [true, "Please enter your firstname"],
+    },
+    lastName: {
+      type: String,
+      required: [true, "Please enter your lastname"],
     },
     email: {
       type: String,
@@ -22,8 +25,9 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     status: {
-      type: Boolean,
-      default: true,
+      type: String,
+      enum: ["active", "banned"],
+      default: "active",
     },
     lastLogin: { type: Date }, // Naujas laukas
   },

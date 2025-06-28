@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import BookCard from "../components/BookCard";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -94,12 +96,27 @@ function Books() {
   return (
     <div className="container mt-4 bg-white">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="text-black">Books Collection</h2>
+        <h2 className="text-black">
+          <span role="img" aria-label="Books" style={{ marginRight: "0.5rem" }}>
+            📚
+          </span>
+          Book Reservations
+        </h2>
+
         {user && user.role === "admin" && (
           <Link to="/add-book" className="btn btn-dark d-none">
             <i className="fas fa-plus me-2"></i>Add New Book
           </Link>
         )}
+      </div>
+
+      {/* Description */}
+      <div className="mb-4">
+        <p className="text-muted">
+          Browse our book collection and request reservations. All reservation
+          requests require admin approval before books become available for
+          pickup.
+        </p>
       </div>
 
       {/* Search and Filter */}
@@ -109,10 +126,10 @@ function Books() {
             <input
               type="text"
               className="form-control border-dark"
-              placeholder="Search books by title or author..."
+              placeholder="Search books available for reservation..."
             />
             <button className="btn btn-outline-dark" type="button">
-              <i className="fas fa-search"></i>
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
             </button>
           </div>
         </div>
@@ -130,7 +147,8 @@ function Books() {
       {/* Books Grid */}
       {books.length === 0 ? (
         <div className="text-center text-muted my-5">
-          <h4>No books found.</h4>
+          <h4>No books available for reservation.</h4>
+          <p>Check back later or contact the library for more information.</p>
         </div>
       ) : (
         <div className="row">

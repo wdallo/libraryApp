@@ -28,7 +28,7 @@ function AuthorCard({ author }) {
           >
             <img
               src={import.meta.env.VITE_API_URL + author.picture}
-              alt={`${author.firstname || "Unknown"} ${author.lastname || ""}`}
+              alt={`${author.firstName || "Unknown"} ${author.lastName || ""}`}
               className="rounded-circle border border-3 border-white shadow author-img"
               style={{
                 width: "110px",
@@ -53,7 +53,7 @@ function AuthorCard({ author }) {
               letterSpacing: "0.01em",
             }}
           >
-            {author.firstname || "Unknown"} {author.lastname || ""}
+            {author.firstName || "Unknown"} {author.lastName || ""}
           </h5>
           <p
             className="card-text mb-1"

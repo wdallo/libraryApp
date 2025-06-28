@@ -22,8 +22,40 @@ const reservationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "returned", "overdue", "pending_return"],
-      default: "active",
+      enum: [
+        "pending",
+        "approved",
+        "active",
+        "returned",
+        "overdue",
+        "pending_return",
+        "cancelled",
+      ],
+      default: "pending",
+    },
+    approvedAt: {
+      type: Date,
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    rejectedAt: {
+      type: Date,
+    },
+    rejectedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    rejectionReason: {
+      type: String,
+    },
+    returnedAt: {
+      type: Date,
+    },
+    returnApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     extensionsUsed: {
       type: Number,
