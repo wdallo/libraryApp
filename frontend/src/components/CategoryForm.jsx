@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 
 function CategoryForm() {
   const [formData, setFormData] = useState({
@@ -40,16 +40,12 @@ function CategoryForm() {
         import.meta.env.VITE_API_URL + "/api/categories"
       );
 
-      const response = await axios.post(
-        import.meta.env.VITE_API_URL + "/api/categories",
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            authorization: token ? `Bearer ${token}` : "",
-          },
-        }
-      );
+      const response = await apiClient.post("/api/categories", formData, {
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ? `Bearer ${token}` : "",
+        },
+      });
 
       console.log("CategoryForm - Success response:", response.data);
       setSuccess("Category added successfully!");

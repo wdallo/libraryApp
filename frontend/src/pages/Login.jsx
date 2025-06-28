@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -35,10 +35,7 @@ function Login() {
     setError("");
     setLoading(true);
     try {
-      const response = await axios.post(
-        import.meta.env.VITE_API_URL + "/api/users/login",
-        formData
-      );
+      const response = await apiClient.post("/api/users/login", formData);
       // Save user to sessionStorage or localStorage based on rememberMe
       const userData = response.data;
       if (rememberMe) {

@@ -1,20 +1,67 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
+import Modal from "./Modal";
 
 function BookCard({ book }) {
   const [isReserving, setIsReserving] = useState(false);
   const [isReserved, setIsReserved] = useState(false);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: "",
+    message: "",
+    type: "alert",
+    onConfirm: null,
+  });
 
   useEffect(() => {
-    checkReservationStatus();
+    // Only check status if user is logged in and has a valid token
+    const user = localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (user) {
+      try {
+        const userData = JSON.parse(user);
+        const token =
+          userData.token || userData.accessToken || userData.jwt || "";
+        if (token) {
+          setIsCheckingStatus(true);
+          checkReservationStatus();
+        }
+      } catch {
+        // Invalid user data, don't check status
+      }
+    }
   }, [book._id]);
+
+  const showAlert = (title, message) => {
+    setModalConfig({
+      title,
+      message,
+      type: "alert",
+      onConfirm: null,
+    });
+    setShowModal(true);
+  };
+
+  const showConfirm = (title, message, onConfirm) => {
+    setModalConfig({
+      title,
+      message,
+      type: "confirm",
+      onConfirm,
+    });
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+  };
 
   const checkReservationStatus = async () => {
     // Get token from user object in localStorage/sessionStorage
     let user = localStorage.getItem("user") || sessionStorage.getItem("user");
     let token = "";
+
     if (user) {
       try {
         user = JSON.parse(user);
@@ -28,14 +75,11 @@ function BookCard({ book }) {
     }
 
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/reservations`,
-        {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiClient.get(`/api/reservations`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
 
       // Check if this book is already reserved by the current user
       const userReservations = response.data.reservations || [];
@@ -63,29 +107,40 @@ function BookCard({ book }) {
       } catch {}
     }
     if (!token) {
-      alert("Need To Login for Reservation");
+      showAlert("Login Required", "You need to log in to reserve books.");
       return;
     }
-    setIsReserving(true);
-    try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/reservations`,
-        { bookId: book._id },
-        {
-          headers: {
-            authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+
+    // Ask for confirmation before reserving
+    showConfirm(
+      "Confirm Reservation",
+      "Do you really want to reserve this book?",
+      async () => {
+        setIsReserving(true);
+        try {
+          await apiClient.post(
+            `/api/reservations`,
+            { bookId: book._id },
+            {
+              headers: {
+                authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          setIsReserved(true);
+          showAlert("Success", "Book reserved successfully!");
+        } catch (error) {
+          console.error("Error reserving book:", error);
+          showAlert(
+            "Error",
+            error.response?.data?.message || "Failed to reserve book"
+          );
+        } finally {
+          setIsReserving(false);
         }
-      );
-      setIsReserved(true);
-      alert("Book reserved successfully!");
-    } catch (error) {
-      console.error("Error reserving book:", error);
-      alert(error.response?.data?.message || "Failed to reserve book");
-    } finally {
-      setIsReserving(false);
-    }
+      }
+    );
   };
 
   return (
@@ -180,6 +235,20 @@ function BookCard({ book }) {
           </div>
         </div>
       </div>
+
+      {/* Modal Component */}
+      <Modal
+        show={showModal}
+        onHide={handleModalClose}
+        title={modalConfig.title}
+        type={modalConfig.type}
+        onConfirm={modalConfig.onConfirm}
+        confirmText="Yes, Reserve"
+        confirmButtonClass="btn-success"
+      >
+        {modalConfig.message}
+      </Modal>
+
       <style>{`
         .book-outer {
           display: flex;

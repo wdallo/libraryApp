@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 
 function AuthorBooks() {
@@ -16,9 +16,7 @@ function AuthorBooks() {
         console.log("API URL:", import.meta.env.VITE_API_URL);
 
         // Fetch author details
-        const authorResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/authors/${authorId}`
-        );
+        const authorResponse = await apiClient.get(`/api/authors/${authorId}`);
         console.log("Author response status:", authorResponse.status);
         console.log("Author response data:", authorResponse.data);
 
@@ -29,8 +27,8 @@ function AuthorBooks() {
         // Fetch books by this author (handle 404 as empty result, not error)
         try {
           console.log("Fetching books for author:", authorId);
-          const booksResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/books?author=${authorId}`
+          const booksResponse = await apiClient.get(
+            `/api/books?author=${authorId}`
           );
           console.log("Books response status:", booksResponse.status);
           console.log("Books response data:", booksResponse.data);

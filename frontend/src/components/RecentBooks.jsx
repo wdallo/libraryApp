@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 
 function ShimmerCard() {
   return (
@@ -42,8 +42,8 @@ function RecentBooks() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get(import.meta.env.VITE_API_URL + "/api/books?sort=recent&limit=3")
+    apiClient
+      .get("/api/books?sort=recent&limit=3")
       .then((res) =>
         setBooks(Array.isArray(res.data.books) ? res.data.books : [])
       )

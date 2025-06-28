@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import AuthorCard from "../components/AuthorCard";
 
@@ -10,7 +10,7 @@ function Authors() {
 
   useEffect(() => {
     setLoading(true);
-    axios
+    apiClient
       .get(import.meta.env.VITE_API_URL + "/api/authors")
       .then((res) => {
         console.log("Authors API response:", res.data);

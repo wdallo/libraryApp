@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "../utils/apiClient";
 import { Link } from "react-router-dom";
 import Loading from "../components/Loading";
 
@@ -28,14 +28,11 @@ function MyReservations() {
     }
 
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/reservations`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiClient.get(`/api/reservations`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
       setReservations(response.data.reservations || []);
     } catch (error) {
       console.error("Error fetching reservations:", error);
@@ -57,14 +54,12 @@ function MyReservations() {
     if (!token) return;
 
     try {
-      const response = await axios.put(
-        `${
-          import.meta.env.VITE_API_URL
-        }/api/reservations/${reservationId}/extend`,
+      const response = await apiClient.put(
+        `/api/reservations/${reservationId}/extend`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            authorization: `Bearer ${token}`,
           },
         }
       );
@@ -96,14 +91,12 @@ function MyReservations() {
       return;
 
     try {
-      const response = await axios.put(
-        `${
-          import.meta.env.VITE_API_URL
-        }/api/reservations/${reservationId}/return`,
+      const response = await apiClient.put(
+        `/api/reservations/${reservationId}/return`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            authorization: `Bearer ${token}`,
           },
         }
       );
