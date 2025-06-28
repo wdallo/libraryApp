@@ -6,6 +6,10 @@ import Authors from "./pages/Authors";
 import AuthorBooks from "./pages/AuthorBooks";
 import Categories from "./pages/Categories";
 import CategoryBooks from "./pages/CategoryBooks";
+import MyReservations from "./pages/MyReservations";
+import AdminReservations from "./pages/AdminReservations";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import UserProtectedRoute from "./components/UserProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -20,15 +24,52 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/books" element={<Books />} />
-          <Route path="/books/new" element={<BookForm />} />
+          <Route
+            path="/books/new"
+            element={
+              <AdminProtectedRoute>
+                <BookForm />
+              </AdminProtectedRoute>
+            }
+          />
           <Route path="/authors" element={<Authors />} />
-          <Route path="/authors/new" element={<AuthorForm />} />
+          <Route
+            path="/authors/new"
+            element={
+              <AdminProtectedRoute>
+                <AuthorForm />
+              </AdminProtectedRoute>
+            }
+          />
           <Route path="/authors/:authorId/books" element={<AuthorBooks />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/categories/new" element={<CategoryForm />} />
+          <Route
+            path="/categories/new"
+            element={
+              <AdminProtectedRoute>
+                <CategoryForm />
+              </AdminProtectedRoute>
+            }
+          />
           <Route
             path="/categories/:categoryId/books"
             element={<CategoryBooks />}
+          />
+          <Route
+            path="/my-reservations"
+            element={
+              <UserProtectedRoute>
+                <MyReservations />
+              </UserProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reservations"
+            element={
+              <AdminProtectedRoute>
+                <AdminReservations />
+              </AdminProtectedRoute>
+            }
           />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

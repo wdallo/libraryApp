@@ -1,6 +1,93 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 function BookCard({ book }) {
+  const [isReserving, setIsReserving] = useState(false);
+  const [isReserved, setIsReserved] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+
+  useEffect(() => {
+    checkReservationStatus();
+  }, [book._id]);
+
+  const checkReservationStatus = async () => {
+    // Get token from user object in localStorage/sessionStorage
+    let user = localStorage.getItem("user") || sessionStorage.getItem("user");
+    let token = "";
+    if (user) {
+      try {
+        user = JSON.parse(user);
+        token = user.token || user.accessToken || user.jwt || "";
+      } catch {}
+    }
+
+    if (!token) {
+      setIsCheckingStatus(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/reservations`,
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Check if this book is already reserved by the current user
+      const userReservations = response.data.reservations || [];
+      const bookReservation = userReservations.find(
+        (reservation) =>
+          reservation.book?._id === book._id && reservation.status === "active"
+      );
+
+      setIsReserved(!!bookReservation);
+    } catch (error) {
+      console.error("Error checking reservation status:", error);
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
+  const handleReserveBook = async () => {
+    // Get token from user object in localStorage/sessionStorage
+    let user = localStorage.getItem("user") || sessionStorage.getItem("user");
+    let token = "";
+    if (user) {
+      try {
+        user = JSON.parse(user);
+        token = user.token || user.accessToken || user.jwt || "";
+      } catch {}
+    }
+    if (!token) {
+      alert("Need To Login for Reservation");
+      return;
+    }
+    setIsReserving(true);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/reservations`,
+        { bookId: book._id },
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setIsReserved(true);
+      alert("Book reserved successfully!");
+    } catch (error) {
+      console.error("Error reserving book:", error);
+      alert(error.response?.data?.message || "Failed to reserve book");
+    } finally {
+      setIsReserving(false);
+    }
+  };
+
   return (
     <div className="book-outer mb-4">
       <div className="book-card book-card-hover bg-dark border-white border-2 shadow">
@@ -62,6 +149,34 @@ function BookCard({ book }) {
             >
               <i className="fas fa-eye me-1"></i> View Details
             </Link>
+            {isCheckingStatus ? (
+              <button
+                disabled
+                className="btn btn-outline-secondary btn-sm flex-fill fw-bold"
+              >
+                <i className="fas fa-spinner fa-spin me-1"></i> Checking...
+              </button>
+            ) : !isReserved ? (
+              <button
+                onClick={handleReserveBook}
+                disabled={isReserving}
+                className="btn btn-success btn-sm flex-fill fw-bold"
+              >
+                <i
+                  className={`fas ${
+                    isReserving ? "fa-spinner fa-spin" : "fa-bookmark"
+                  } me-1`}
+                ></i>
+                {isReserving ? "Reserving..." : "Reserve"}
+              </button>
+            ) : (
+              <button
+                disabled
+                className="btn btn-secondary btn-sm flex-fill fw-bold"
+              >
+                <i className="fas fa-check me-1"></i> Reserved
+              </button>
+            )}
           </div>
         </div>
       </div>

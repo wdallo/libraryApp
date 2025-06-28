@@ -79,6 +79,16 @@ function Layout({ children }) {
                   Categories
                 </Link>
               </li>
+              {user && (
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${isActive("/my-reservations")}`}
+                    to="/my-reservations"
+                  >
+                    My Reservations
+                  </Link>
+                </li>
+              )}
             </ul>
             <ul className="navbar-nav">
               {user ? (
@@ -103,6 +113,12 @@ function Layout({ children }) {
                         {user.email}
                       </span>
                     </li>
+                    <li>
+                      <Link className="dropdown-item" to="/my-reservations">
+                        <i className="fas fa-bookmark me-2"></i>
+                        My Reservations
+                      </Link>
+                    </li>
                     {user.role === "admin" && (
                       <>
                         <li>
@@ -124,6 +140,18 @@ function Layout({ children }) {
                           <Link className="dropdown-item" to="/authors/new">
                             <FontAwesomeIcon icon={faPlus} className="me-2" />
                             Add Author
+                          </Link>
+                        </li>
+                        <li>
+                          <hr className="dropdown-divider" />
+                        </li>
+                        <li>
+                          <Link
+                            className="dropdown-item"
+                            to="/admin/reservations"
+                          >
+                            <i className="fas fa-tasks me-2"></i>
+                            Manage Reservations
                           </Link>
                         </li>
                       </>

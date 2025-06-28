@@ -13,6 +13,7 @@ const bookRoutes = require("./routes/bookRoutes");
 const userRoutes = require("./routes/userRoutes");
 const bookCategoryRoutes = require("./routes/bookCategoryRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const reservationRoutes = require("./routes/reservationRoutes");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -72,6 +73,7 @@ app.use("/api/books", bookRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", bookCategoryRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/reservations", reservationRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
