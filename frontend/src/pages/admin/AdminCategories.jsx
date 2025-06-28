@@ -4,7 +4,13 @@ import Loading from "../../components/Loading";
 import Modal from "../../components/Modal";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faPlus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBackward,
+  faMagnifyingGlass,
+  faPen,
+  faPlus,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 
 function AdminCategories() {
   const [categories, setCategories] = useState([]);
@@ -101,9 +107,18 @@ function AdminCategories() {
     }
   };
 
-  const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCategories = Array.isArray(categories)
+    ? categories.filter((category) => {
+        const matchesSearch =
+          (category.name || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (category.description || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+        return matchesSearch;
+      })
+    : [];
 
   if (loading) {
     return <Loading />;
@@ -115,7 +130,10 @@ function AdminCategories() {
         <h2 className="text-black">
           <i className="fas fa-tags me-2"></i>
           Categories Management
-        </h2>
+        </h2>{" "}
+        <Link to={-1} className="btn btn-outline-secondary">
+          <FontAwesomeIcon icon={faBackward} /> Go Back
+        </Link>
       </div>
 
       {/* Search */}
@@ -125,7 +143,7 @@ function AdminCategories() {
             <input
               type="text"
               className="form-control"
-              placeholder="Search categories..."
+              placeholder="Search categories by name or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -145,63 +163,92 @@ function AdminCategories() {
             <FontAwesomeIcon icon={faPlus} className="me-2" />
             Add Category
           </Link>
-
-          <Link
-            to="/admin/dashboard"
-            className="btn btn-secondary d-flex align-items-center"
-          >
-            <FontAwesomeIcon icon={faPlus} className="me-2" />
-            Back to Admin
-          </Link>
         </div>
       </div>
 
-      {/* Categories Grid */}
-      <div className="row">
-        {filteredCategories.map((category) => (
-          <div key={category._id} className="col-md-6 col-lg-4 mb-4">
-            <div className="card h-100">
-              <div className="card-body d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-start mb-3">
-                  <h5 className="card-title">{category.name}</h5>
-                  <div className="btn-group btn-group-sm">
-                    <button
-                      className="btn btn-outline-primary"
-                      onClick={() => handleEditCategory(category)}
-                      title="Edit Category"
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button
-                      className="btn btn-outline-danger"
-                      onClick={() => handleDeleteCategory(category)}
-                      title="Delete Category"
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <p className="card-text flex-grow-1">
-                  {category.description || "No description available"}
-                </p>
-
-                <div className="mt-auto">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <small className="text-muted">
-                      <i className="fas fa-book me-1"></i>
-                      {category.bookCount || 0} books
-                    </small>
-                    <small className="text-muted">
-                      Created:{" "}
-                      {new Date(category.createdAt).toLocaleDateString()}
-                    </small>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Categories Table */}
+      <div className="card">
+        <div className="card-body">
+          <div className="table-responsive">
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Books</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCategories.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="text-center text-muted">
+                      {searchTerm
+                        ? "No categories found matching your search."
+                        : "No categories available."}
+                    </td>
+                  </tr>
+                )}
+                {filteredCategories.map((category) => (
+                  <tr key={category._id}>
+                    <td>
+                      <strong>{category.name || "Unnamed Category"}</strong>
+                    </td>
+                    <td>
+                      <span
+                        title={
+                          category.description || "No description available"
+                        }
+                        style={{
+                          cursor: category.description ? "help" : "default",
+                        }}
+                      >
+                        {category.description ? (
+                          category.description.length > 80 ? (
+                            `${category.description.slice(0, 80)}...`
+                          ) : (
+                            category.description
+                          )
+                        ) : (
+                          <em className="text-muted">No description</em>
+                        )}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="badge bg-secondary">
+                        {category.bookCount || 0}
+                      </span>
+                    </td>
+                    <td>
+                      {category.createdAt
+                        ? new Date(category.createdAt).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td>
+                      <div className="btn-group btn-group-sm">
+                        <button
+                          className="btn btn-outline-primary"
+                          onClick={() => handleEditCategory(category)}
+                          title="Edit Category"
+                        >
+                          <FontAwesomeIcon icon={faPen} />
+                        </button>
+                        <button
+                          className="btn btn-outline-danger"
+                          onClick={() => handleDeleteCategory(category)}
+                          title="Delete Category"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
+        </div>
       </div>
 
       {filteredCategories.length === 0 && (

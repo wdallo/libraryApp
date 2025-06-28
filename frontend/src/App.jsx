@@ -20,6 +20,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBooks from "./pages/admin/AdminBooks";
 import AdminCategories from "./pages/admin/AdminCategories";
+import AdminAuthors from "./pages/admin/AdminAuthors";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import Login from "./pages/Login";
@@ -122,6 +123,14 @@ function AppContent() {
           element={
             <AdminProtectedRoute>
               <AdminCategories />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/authors"
+          element={
+            <AdminProtectedRoute>
+              <AdminAuthors />
             </AdminProtectedRoute>
           }
         />

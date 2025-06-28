@@ -176,7 +176,7 @@ function AdminDashboard() {
             </div>
             <div className="card-body">
               <div className="row">
-                <div className="col-md-3 mb-3">
+                <div className="col-md-6 mb-3">
                   <Link
                     to="/admin/users"
                     className="btn btn-outline-primary w-100"
@@ -185,7 +185,7 @@ function AdminDashboard() {
                     Manage Users
                   </Link>
                 </div>
-                <div className="col-md-3 mb-3">
+                <div className="col-md-6 mb-3">
                   <Link
                     to="/admin/books"
                     className="btn btn-outline-success w-100"
@@ -194,7 +194,7 @@ function AdminDashboard() {
                     Manage Books
                   </Link>
                 </div>
-                <div className="col-md-3 mb-3">
+                <div className="col-md-6 mb-3">
                   <Link
                     to="/admin/categories"
                     className="btn btn-outline-info w-100"
@@ -203,7 +203,16 @@ function AdminDashboard() {
                     Manage Categories
                   </Link>
                 </div>
-                <div className="col-md-3 mb-3">
+                <div className="col-md-6 mb-3">
+                  <Link
+                    to="/admin/authors"
+                    className="btn btn-outline-secondary w-100"
+                  >
+                    <i className="fas fa-user-edit me-2"></i>
+                    Manage Authors
+                  </Link>
+                </div>
+                <div className="col-md-12 mb-3">
                   <Link
                     to="/admin/reservations"
                     className="btn btn-outline-warning w-100"

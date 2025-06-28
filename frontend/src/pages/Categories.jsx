@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import CategoryCard from "../components/CategoryCard";
+import Pagination from "../components/Pagination";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const categoriesPerPage = 6; // You can adjust this number
 
   useEffect(() => {
     setLoading(true);
@@ -14,9 +18,11 @@ function Categories() {
       .get(import.meta.env.VITE_API_URL + "/api/categories")
       .then((res) => {
         console.log("API categories response:", res.data); // <--- add this line
-        setCategories(
-          Array.isArray(res.data) ? res.data : res.data.categories || []
-        );
+        const categoriesData = Array.isArray(res.data)
+          ? res.data
+          : res.data.categories || [];
+        setCategories(categoriesData);
+        setTotalPages(Math.ceil(categoriesData.length / categoriesPerPage));
         setLoading(false);
       })
       .catch((err) => {
@@ -25,6 +31,19 @@ function Categories() {
         setLoading(false);
       });
   }, []);
+
+  // Calculate categories to display for current page
+  const getCurrentPageCategories = () => {
+    const startIndex = (currentPage - 1) * categoriesPerPage;
+    const endIndex = startIndex + categoriesPerPage;
+    return categories.slice(startIndex, endIndex);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes (optional)
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const storedUser =
@@ -63,10 +82,15 @@ function Categories() {
       <div className="row">
         {categories.length === 0 ? (
           <div className="col-12 text-center py-5">
+            <img
+              style={{ marginBottom: "50px" }}
+              src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
+              alt="No categories found"
+            />
             <p className="text-muted fs-5 mb-0">No Categories found.</p>
           </div>
         ) : (
-          categories.map((category) => (
+          getCurrentPageCategories().map((category) => (
             <CategoryCard
               key={category._id || category.id || category.name}
               category={category}
@@ -75,6 +99,17 @@ function Categories() {
           ))
         )}
       </div>
+
+      {/* Pagination Component */}
+      {categories.length > categoriesPerPage && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          variant="dark"
+          className="mt-4"
+        />
+      )}
 
       {/* Category Stats */}
       <div className="row mt-5">

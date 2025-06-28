@@ -278,7 +278,7 @@ function BookView() {
       <div className="row">
         {/* Book Image */}
         <div className="col-md-4 mb-4">
-          <div className="card">
+          <div className="card sticky-top" style={{ top: "90px", zIndex: 1 }}>
             <div className="card-body text-center">
               {book.picture || book.image ? (
                 <img
@@ -287,7 +287,7 @@ function BookView() {
                   }
                   alt={book.title}
                   className="img-fluid rounded"
-                  style={{ maxHeight: "400px", objectFit: "cover" }}
+                  style={{ width: "100%", objectFit: "cover" }}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src =
@@ -311,7 +311,6 @@ function BookView() {
             </div>
           </div>
         </div>
-
         {/* Book Details */}
         <div className="col-md-8">
           <div className="card">

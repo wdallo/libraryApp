@@ -42,9 +42,9 @@ const getBooks = asyncHandler(async (req, res) => {
 
     // Get books with proper population
     const books = await Book.find(query)
-      .populate("author", "firstname lastname")
+      .populate("author", "firstName lastName")
       .populate("category", "name")
-      .populate("createdBy", "username")
+      .populate("createdBy", "firstName")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -169,7 +169,7 @@ const deleteBook = asyncHandler(async (req, res) => {
  */
 const getBookById = asyncHandler(async (req, res) => {
   const book = await Book.findOne({ _id: req.params.id })
-    .populate("author", "firstname lastname")
+    .populate("author", "firstName lastName")
     .populate("category", "name")
     .populate("createdBy", "username email");
 
@@ -218,6 +218,7 @@ const createBook = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to create books");
   }
 
+  // Handle picture upload (optional)
   let picture = null;
   if (req.file) {
     picture = `/uploads/books/${req.file.filename}`;

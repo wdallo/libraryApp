@@ -118,7 +118,8 @@ function AuthorBooks() {
             }}
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = import.meta.env.VITE_API_URL + "/notfound.png";
+              e.target.src =
+                import.meta.env.VITE_API_URL + "/uploads/notfound.png";
             }}
           />
         </div>
@@ -151,50 +152,100 @@ function AuthorBooks() {
         </div>
       ) : (
         <div className="row">
-          {books.map((book) => (
-            <div key={book._id || book.id} className="col-md-6 col-lg-4 mb-4">
-              <div className="card h-100 bg-dark text-white border-white border-2 shadow">
-                <div className="card-body">
-                  <h5 className="card-title">{book.title}</h5>
-                  <p className="card-text text-muted">
-                    <small>
-                      <i className="fas fa-calendar me-2"></i>
-                      {book.publishedYear || "Unknown Year"}
-                    </small>
-                  </p>
-                  <p className="card-text text-muted">
-                    <small>
-                      <i className="fas fa-layer-group me-2"></i>
-                      {book.category?.name || "Uncategorized"}
-                    </small>
-                  </p>
-                  <p className="card-text">
-                    {(book.description || "No description available.").slice(
-                      0,
-                      100
-                    )}
-                    {book.description && book.description.length > 100
-                      ? "..."
-                      : ""}
-                  </p>
-                  <div className="d-flex gap-2 justify-content-between mt-auto">
-                    <small className="text-muted">
-                      <i className="fas fa-book me-1"></i>
-                      {book.pages || 0} pages
-                    </small>
-                    <div className="btn-group btn-group-sm">
-                      <button className="btn btn-outline-light btn-sm">
-                        <i className="fas fa-eye"></i>
-                      </button>
-                      <button className="btn btn-outline-light btn-sm">
-                        <i className="fas fa-edit"></i>
-                      </button>
+          {books.map((book) => {
+            // Determine category info and link
+            let categoryName = "Uncategorized";
+            let categoryId = null;
+            if (book.category) {
+              if (Array.isArray(book.category) && book.category.length > 0) {
+                categoryName = book.category[0]?.name || "Uncategorized";
+                categoryId = book.category[0]?._id || book.category[0]?.id;
+              } else if (typeof book.category === "object") {
+                categoryName = book.category.name || "Uncategorized";
+                categoryId = book.category._id || book.category.id;
+              }
+            }
+            return (
+              <div key={book._id || book.id} className="col-md-6 col-lg-4 mb-4">
+                <div className="card h-100 bg-dark text-white border-white border-2 shadow">
+                  <div className="card-body d-flex flex-column">
+                    <h5 className="card-title">{book.title}</h5>
+                    <p className="card-text">
+                      <small>
+                        Published:{" "}
+                        {book.publishedYear
+                          ? book.publishedYear
+                          : book.publishedDate
+                          ? new Date(book.publishedDate).getFullYear()
+                          : "Unknown Year"}{" "}
+                        year
+                      </small>
+                    </p>
+
+                    <p className="card-text">
+                      {(book.description || "No description available.").slice(
+                        0,
+                        100
+                      )}
+                      {book.description && book.description.length > 100
+                        ? "..."
+                        : ""}
+                    </p>
+                    <div className="d-flex gap-2 justify-content-between align-items-center mt-auto">
+                      <small>
+                        <i className="fas fa-book me-1"></i>
+                        {book.pages || 0} pages
+                      </small>
+
+                      {/* Genre/Category styled as a badge and clickable */}
+                      {categoryId ? (
+                        <Link
+                          to={`/categories/${categoryId}/books`}
+                          className="badge rounded-pill"
+                          style={{
+                            backgroundColor: "#ffc107",
+                            color: "#212529",
+                            fontWeight: "bold",
+                            fontSize: "0.85rem",
+                            padding: "0.5em 0.9em",
+                            letterSpacing: "0.03em",
+                            textDecoration: "none",
+                          }}
+                          title={`View category: ${categoryName}`}
+                        >
+                          {categoryName}
+                        </Link>
+                      ) : (
+                        <span
+                          className="badge rounded-pill"
+                          style={{
+                            backgroundColor: "#ffc107",
+                            color: "#212529",
+                            fontWeight: "bold",
+                            fontSize: "0.85rem",
+                            padding: "0.5em 0.9em",
+                            letterSpacing: "0.03em",
+                          }}
+                        >
+                          {categoryName}
+                        </span>
+                      )}
+
+                      <div className="btn-group btn-group-sm">
+                        <Link
+                          to={`/books/${book._id || book.id}`}
+                          className="btn btn-outline-light btn-sm"
+                          title="View Book"
+                        >
+                          View Book
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

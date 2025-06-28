@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import BookCard from "../components/BookCard";
+import Pagination from "../components/Pagination";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
@@ -10,6 +11,9 @@ function Books() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const booksPerPage = 6; // You can adjust this number
 
   useEffect(() => {
     setLoading(true);
@@ -43,6 +47,7 @@ function Books() {
             console.log("Books.jsx - First book structure:", res.data[0]);
           }
           setBooks(res.data);
+          setTotalPages(Math.ceil(res.data.length / booksPerPage));
         } else if (res.data && Array.isArray(res.data.books)) {
           console.log(
             "Books.jsx - Setting books from .books property, length:",
@@ -53,11 +58,13 @@ function Books() {
             console.log("Books.jsx - First book structure:", res.data.books[0]);
           }
           setBooks(res.data.books);
+          setTotalPages(Math.ceil(res.data.books.length / booksPerPage));
         } else {
           console.log(
             "Books.jsx - No valid books array found, setting empty array"
           );
           setBooks([]);
+          setTotalPages(1);
         }
         setLoading(false);
       })
@@ -78,6 +85,19 @@ function Books() {
         setLoading(false);
       });
   }, []);
+
+  // Calculate books to display for current page
+  const getCurrentPageBooks = () => {
+    const startIndex = (currentPage - 1) * booksPerPage;
+    const endIndex = startIndex + booksPerPage;
+    return books.slice(startIndex, endIndex);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes (optional)
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const storedUser =
@@ -136,10 +156,27 @@ function Books() {
         <div className="col-md-4">
           <select className="form-select border-dark">
             <option value="">All Categories</option>
-            <option value="fiction">Fiction</option>
-            <option value="non-fiction">Non-Fiction</option>
-            <option value="mystery">Mystery</option>
-            <option value="romance">Romance</option>
+            {Array.from(
+              new Set(
+                books.flatMap((book) => {
+                  if (book.category) {
+                    // Handle both string and object categories
+                    if (typeof book.category === "string") {
+                      return [book.category];
+                    } else if (Array.isArray(book.category)) {
+                      return book.category.map((cat) => cat.name || cat);
+                    } else if (book.category.name) {
+                      return [book.category.name];
+                    }
+                  }
+                  return [];
+                })
+              )
+            ).map((categoryName) => (
+              <option key={categoryName} value={categoryName}>
+                {categoryName}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -147,52 +184,34 @@ function Books() {
       {/* Books Grid */}
       {books.length === 0 ? (
         <div className="text-center text-muted my-5">
+          <img
+            style={{ marginBottom: "50px" }}
+            src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
+          ></img>
+
           <h4>No books available for reservation.</h4>
           <p>Check back later or contact the library for more information.</p>
         </div>
       ) : (
         <div className="row">
-          {books.map((book) => (
+          {getCurrentPageBooks().map((book) => (
             <div key={book._id || book.id} className="col-md-4 mb-4">
               <BookCard book={book} />
             </div>
           ))}
         </div>
       )}
-      {/* Pagination */}
-      <nav aria-label="Books pagination">
-        <ul className="pagination justify-content-center">
-          <li className="page-item disabled">
-            <a
-              className="page-link bg-dark text-white border-dark"
-              href="#"
-              tabIndex="-1"
-            >
-              Previous
-            </a>
-          </li>
-          <li className="page-item active">
-            <a className="page-link bg-dark text-white border-dark" href="#">
-              1
-            </a>
-          </li>
-          <li className="page-item">
-            <a className="page-link bg-dark text-white border-dark" href="#">
-              2
-            </a>
-          </li>
-          <li className="page-item">
-            <a className="page-link bg-dark text-white border-dark" href="#">
-              3
-            </a>
-          </li>
-          <li className="page-item">
-            <a className="page-link bg-dark text-white border-dark" href="#">
-              Next
-            </a>
-          </li>
-        </ul>
-      </nav>
+
+      {/* Pagination Component */}
+      {books.length > booksPerPage && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          variant="dark"
+          className="mt-4"
+        />
+      )}
     </div>
   );
 }

@@ -152,13 +152,28 @@ function MyReservations() {
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-4 text-black">My Book Reservations</h2>
+      <h2 className="mb-4 text-black" style={{ marginTop: "-25px" }}>
+        <span
+          role="img"
+          aria-label="Reservations"
+          style={{ marginRight: "0.5rem" }}
+        >
+          🎟️
+        </span>
+        My Book Reservations
+      </h2>
 
       {reservations.length === 0 ? (
         <div className="text-center">
+          {" "}
+          <img
+            style={{ marginBottom: "50px" }}
+            src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
+          ></img>
+          <h5>No Reservations Made</h5>
           <p>You don't have any book reservations yet.</p>
           <Link to="/books" className="btn btn-dark">
-            Browse Books
+            Browse Books Collection
           </Link>
         </div>
       ) : (

@@ -91,7 +91,7 @@ const getCategoryById = asyncHandler(async (req, res) => {
 
     // Find all books that include this category
     const books = await Book.find({ category: { $in: [category._id] } })
-      .populate("author", "firstname lastname")
+      .populate("author", "firstName lastName")
       .populate("category", "name");
     const bookCount = books.length;
 

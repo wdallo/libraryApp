@@ -133,9 +133,10 @@ function RecentBooks() {
                     style={{ fontSize: "0.98rem" }}
                   >
                     <span style={{ fontWeight: 500 }}>Published:</span>{" "}
-                    {book.releaseYear
-                      ? new Date(book.releaseYear).getFullYear()
-                      : "N/A"}
+                    {book.publishedDate
+                      ? new Date(book.publishedDate).getFullYear()
+                      : "N/A"}{" "}
+                    year
                   </p>
                   <div className="mt-auto">
                     <Link
