@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import BookCard from "../components/BookCard";
@@ -8,32 +8,31 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faPlus } from "@fortawesome/free-solid-svg-icons";
 
 function Books() {
+  const { pageNumber } = useParams();
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Initialize currentPage from URL parameter
+    const page = parseInt(pageNumber, 10);
+    return page && page > 0 ? page : 1;
+  });
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const booksPerPage = 6; // You can adjust this number
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [pageReady, setPageReady] = useState(false);
+  const booksPerPage = 8; // You can adjust this number
 
   useEffect(() => {
     setLoading(true);
     const apiUrl = import.meta.env.VITE_API_URL + "/api/books";
-    console.log("Books.jsx - Environment variables:", {
-      VITE_API_URL: import.meta.env.VITE_API_URL,
-      VITE_ENV: import.meta.env.VITE_ENV,
-    });
-    console.log("Books.jsx - Full API URL:", apiUrl);
 
     apiClient
       .get(apiUrl)
       .then((res) => {
-        console.log("Books.jsx - Success! Status:", res.status);
-        console.log("Books.jsx - Response headers:", res.headers);
-        console.log("Books.jsx - API response data:", res.data);
-        console.log("Books.jsx - Response data type:", typeof res.data);
         console.log(
           "Books.jsx - Is response data an array?",
           Array.isArray(res.data)
@@ -141,8 +140,12 @@ function Books() {
 
     setFilteredBooks(filtered);
     setTotalPages(Math.ceil(filtered.length / booksPerPage));
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [books, searchTerm, selectedCategory, booksPerPage]);
+
+    // Mark page as ready to render only after initial filtering is complete
+    if (!pageReady) {
+      setPageReady(true);
+    }
+  }, [books, searchTerm, selectedCategory, booksPerPage, pageReady]);
 
   // Calculate books to display for current page
   const getCurrentPageBooks = () => {
@@ -153,6 +156,12 @@ function Books() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    // Navigate to the new URL with page parameter
+    if (page === 1) {
+      navigate("/books");
+    } else {
+      navigate(`/books/page/${page}`);
+    }
     // Scroll to top when page changes (optional)
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -167,7 +176,69 @@ function Books() {
     }
   }, []);
 
-  if (loading) {
+  // Handle URL parameter changes for pagination
+  useEffect(() => {
+    const page = parseInt(pageNumber, 10);
+    const newPage = page && page > 0 ? page : 1;
+    setCurrentPage(newPage);
+  }, [pageNumber]);
+
+  // Validate current page and redirect if necessary
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages && !isInitialLoad) {
+      console.log(
+        `Page validation: currentPage ${currentPage} > totalPages ${totalPages}, redirecting`
+      );
+      // Redirect to the last valid page
+      if (totalPages === 1) {
+        navigate("/books");
+      } else {
+        navigate(`/books/page/${totalPages}`);
+      }
+    }
+  }, [currentPage, totalPages, navigate, isInitialLoad]);
+
+  // Handler functions for filter changes
+  const handleSearchChange = (e) => {
+    console.log(
+      `handleSearchChange: isInitialLoad=${isInitialLoad}, searchTerm changing from "${searchTerm}" to "${e.target.value}"`
+    );
+    setSearchTerm(e.target.value);
+    // Only reset page and navigate if not during initial load
+    if (!isInitialLoad) {
+      console.log("handleSearchChange: Resetting to page 1");
+      setCurrentPage(1);
+      navigate("/books");
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    console.log(
+      `handleCategoryChange: isInitialLoad=${isInitialLoad}, category changing from "${selectedCategory}" to "${e.target.value}"`
+    );
+    setSelectedCategory(e.target.value);
+    // Only reset page and navigate if not during initial load
+    if (!isInitialLoad) {
+      console.log("handleCategoryChange: Resetting to page 1");
+      setCurrentPage(1);
+      navigate("/books");
+    }
+  };
+
+  // Mark initial load as complete once books are loaded and page is ready
+  useEffect(() => {
+    if (!loading && pageReady && isInitialLoad) {
+      console.log("Marking initial load as complete");
+      // Longer delay to ensure all initial effects have run and URL is processed
+      const timer = setTimeout(() => {
+        setIsInitialLoad(false);
+        console.log("Initial load marked as complete");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, pageReady, isInitialLoad]);
+
+  if (loading || !pageReady) {
     return <Loading />;
   }
 
@@ -207,7 +278,7 @@ function Books() {
               className="form-control border-dark"
               placeholder="Search books by title or author..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
             />
             <button className="btn btn-outline-dark" type="button">
               <FontAwesomeIcon icon={faMagnifyingGlass} />
@@ -218,7 +289,7 @@ function Books() {
           <select
             className="form-select border-dark"
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={handleCategoryChange}
           >
             <option value="">All Categories</option>
             {Array.from(
@@ -270,6 +341,8 @@ function Books() {
                 onClick={() => {
                   setSearchTerm("");
                   setSelectedCategory("");
+                  setCurrentPage(1);
+                  navigate("/books");
                 }}
               >
                 Clear Filters
@@ -290,11 +363,9 @@ function Books() {
             </small>
           </div>
 
-          <div className="row">
+          <div className="books-grid">
             {getCurrentPageBooks().map((book) => (
-              <div key={book._id || book.id} className="col-md-4 mb-4">
-                <BookCard book={book} />
-              </div>
+              <BookCard key={book._id || book.id} book={book} />
             ))}
           </div>
         </>
@@ -306,7 +377,6 @@ function Books() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          variant="dark"
           className="mt-4"
         />
       )}

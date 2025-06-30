@@ -1,4 +1,9 @@
 import PropTypes from "prop-types";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faChevronLeft,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 function Pagination({
   currentPage = 1,
@@ -7,7 +12,6 @@ function Pagination({
   showPrevNext = true,
   maxVisiblePages = 5,
   className = "",
-  variant = "dark", // dark, light, primary, etc.
 }) {
   // Don't render if there's only one page or no pages
   if (totalPages <= 1) {
@@ -37,34 +41,6 @@ function Pagination({
   const hasPrevious = currentPage > 1;
   const hasNext = currentPage < totalPages;
 
-  // Define button classes based on variant
-  const getButtonClasses = (active = false, disabled = false) => {
-    let baseClasses = "page-link";
-
-    if (variant === "dark") {
-      baseClasses += active
-        ? " bg-dark text-white border-dark"
-        : " bg-dark text-white border-dark";
-    } else if (variant === "primary") {
-      baseClasses += active
-        ? " bg-primary text-white border-primary"
-        : " text-primary border-primary";
-    } else if (variant === "light") {
-      baseClasses += active
-        ? " bg-light text-dark border-secondary"
-        : " text-dark border-secondary";
-    } else {
-      // Default Bootstrap styling
-      baseClasses += active ? " active" : "";
-    }
-
-    if (disabled) {
-      baseClasses += " disabled";
-    }
-
-    return baseClasses;
-  };
-
   const handlePageClick = (page, event) => {
     event.preventDefault();
     if (page !== currentPage && page >= 1 && page <= totalPages) {
@@ -73,95 +49,86 @@ function Pagination({
   };
 
   return (
-    <nav aria-label="Pagination navigation" className={className}>
-      <ul className="pagination justify-content-center">
+    <nav
+      aria-label="Pagination navigation"
+      className={`modern-pagination ${className}`}
+    >
+      <div className="pagination-container">
         {/* Previous Button */}
         {showPrevNext && (
-          <li className={`page-item ${!hasPrevious ? "disabled" : ""}`}>
-            <a
-              className={getButtonClasses(false, !hasPrevious)}
-              href="#"
-              onClick={(e) => handlePageClick(currentPage - 1, e)}
-              tabIndex={!hasPrevious ? "-1" : "0"}
-              aria-disabled={!hasPrevious}
-            >
-              Previous
-            </a>
-          </li>
+          <button
+            className={`pagination-btn prev-btn ${
+              !hasPrevious ? "disabled" : ""
+            }`}
+            onClick={(e) => handlePageClick(currentPage - 1, e)}
+            disabled={!hasPrevious}
+            aria-disabled={!hasPrevious}
+          >
+            <FontAwesomeIcon icon={faChevronLeft} />
+            <span className="btn-text">Previous</span>
+          </button>
         )}
 
-        {/* First Page + Ellipsis */}
-        {visiblePages[0] > 1 && (
-          <>
-            <li className="page-item">
-              <a
-                className={getButtonClasses(1 === currentPage)}
-                href="#"
+        {/* Page Numbers Container */}
+        <div className="page-numbers">
+          {/* First Page + Ellipsis */}
+          {visiblePages[0] > 1 && (
+            <>
+              <button
+                className={`page-btn ${1 === currentPage ? "active" : ""}`}
                 onClick={(e) => handlePageClick(1, e)}
               >
                 1
-              </a>
-            </li>
-            {visiblePages[0] > 2 && (
-              <li className="page-item disabled">
-                <span className={getButtonClasses(false, true)}>...</span>
-              </li>
-            )}
-          </>
-        )}
+              </button>
+              {visiblePages[0] > 2 && (
+                <span className="pagination-ellipsis">...</span>
+              )}
+            </>
+          )}
 
-        {/* Visible Page Numbers */}
-        {visiblePages.map((page) => (
-          <li
-            key={page}
-            className={`page-item ${page === currentPage ? "active" : ""}`}
-          >
-            <a
-              className={getButtonClasses(page === currentPage)}
-              href="#"
+          {/* Visible Page Numbers */}
+          {visiblePages.map((page) => (
+            <button
+              key={page}
+              className={`page-btn ${page === currentPage ? "active" : ""}`}
               onClick={(e) => handlePageClick(page, e)}
               aria-current={page === currentPage ? "page" : undefined}
             >
               {page}
-            </a>
-          </li>
-        ))}
+            </button>
+          ))}
 
-        {/* Last Page + Ellipsis */}
-        {visiblePages[visiblePages.length - 1] < totalPages && (
-          <>
-            {visiblePages[visiblePages.length - 1] < totalPages - 1 && (
-              <li className="page-item disabled">
-                <span className={getButtonClasses(false, true)}>...</span>
-              </li>
-            )}
-            <li className="page-item">
-              <a
-                className={getButtonClasses(totalPages === currentPage)}
-                href="#"
+          {/* Last Page + Ellipsis */}
+          {visiblePages[visiblePages.length - 1] < totalPages && (
+            <>
+              {visiblePages[visiblePages.length - 1] < totalPages - 1 && (
+                <span className="pagination-ellipsis">...</span>
+              )}
+              <button
+                className={`page-btn ${
+                  totalPages === currentPage ? "active" : ""
+                }`}
                 onClick={(e) => handlePageClick(totalPages, e)}
               >
                 {totalPages}
-              </a>
-            </li>
-          </>
-        )}
+              </button>
+            </>
+          )}
+        </div>
 
         {/* Next Button */}
         {showPrevNext && (
-          <li className={`page-item ${!hasNext ? "disabled" : ""}`}>
-            <a
-              className={getButtonClasses(false, !hasNext)}
-              href="#"
-              onClick={(e) => handlePageClick(currentPage + 1, e)}
-              tabIndex={!hasNext ? "-1" : "0"}
-              aria-disabled={!hasNext}
-            >
-              Next
-            </a>
-          </li>
+          <button
+            className={`pagination-btn next-btn ${!hasNext ? "disabled" : ""}`}
+            onClick={(e) => handlePageClick(currentPage + 1, e)}
+            disabled={!hasNext}
+            aria-disabled={!hasNext}
+          >
+            <span className="btn-text">Next</span>
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
         )}
-      </ul>
+      </div>
     </nav>
   );
 }
@@ -173,7 +140,6 @@ Pagination.propTypes = {
   showPrevNext: PropTypes.bool,
   maxVisiblePages: PropTypes.number,
   className: PropTypes.string,
-  variant: PropTypes.oneOf(["dark", "light", "primary", "default"]),
 };
 
 export default Pagination;

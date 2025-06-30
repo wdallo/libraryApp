@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
 import AuthorCard from "../components/AuthorCard";
@@ -7,10 +8,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 function Authors() {
+  const { pageNumber } = useParams();
+  const navigate = useNavigate();
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = parseInt(pageNumber, 10);
+    return page && page > 0 ? page : 1;
+  });
   const [totalPages, setTotalPages] = useState(1);
   const authorsPerPage = 6; // You can adjust this number
 
@@ -48,6 +54,12 @@ function Authors() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    // Navigate to the new URL with page parameter
+    if (page === 1) {
+      navigate("/authors");
+    } else {
+      navigate(`/authors/page/${page}`);
+    }
     // Scroll to top when page changes (optional)
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -61,6 +73,25 @@ function Authors() {
       setUser(null);
     }
   }, []);
+
+  // Handle URL parameter changes for pagination
+  useEffect(() => {
+    const page = parseInt(pageNumber, 10);
+    const newPage = page && page > 0 ? page : 1;
+    setCurrentPage(newPage);
+  }, [pageNumber]);
+
+  // Validate current page and redirect if necessary
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      // Redirect to the last valid page
+      if (totalPages === 1) {
+        navigate("/authors");
+      } else {
+        navigate(`/authors/page/${totalPages}`);
+      }
+    }
+  }, [currentPage, totalPages, navigate]);
 
   if (loading) {
     return <Loading />;
@@ -120,7 +151,6 @@ function Authors() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          variant="dark"
           className="mt-4"
         />
       )}

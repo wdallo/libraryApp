@@ -154,122 +154,103 @@ function BookCard({ book }) {
   };
 
   return (
-    <div className="book-outer mb-4">
-      <div
-        className="card bg-dark text-white border-white border-2 shadow"
-        style={{
-          maxWidth: 320,
-          minWidth: 320,
-          minHeight: 670,
-          maxHeight: 670,
-          borderRadius: 16,
-        }}
-      >
-        <div
-          className="book-image-wrap card-img-top"
-          style={{
-            height: 320,
-            background: "#222",
-            borderBottom: "1px solid #444",
-            borderRadius: "16px 16px 0 0",
-            overflow: "hidden",
-          }}
-        >
+    <div className="book-card-container">
+      <div className="modern-book-card">
+        {/* Book Cover */}
+        <div className="book-cover">
           <img
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: "0 0 12px 12px",
-              boxShadow: "0 2px 12px 0 rgba(0,0,0,0.18)",
-            }}
+            loading="lazy"
             src={import.meta.env.VITE_API_URL + book.picture}
-            className="book-img"
             alt={book.title || "Book cover"}
+            className="cover-image"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src =
                 import.meta.env.VITE_API_URL + "/uploads/notfound.png";
             }}
           />
+          {/* Availability Badge */}
+          <div className="availability-badge">
+            {book.availableQuantity > 0 ? (
+              <span className="available">Available</span>
+            ) : (
+              <span className="unavailable">Out of Stock</span>
+            )}
+          </div>
         </div>
-        <div className="card-body d-flex flex-column p-3">
-          <h5 className="card-title mb-1">{book.title || "Untitled"}</h5>
-          <p className="card-subtitle mb-1 text-light">
-            {book.author &&
-            typeof book.author === "object" &&
-            book.author.firstName
-              ? `${book.author.firstName} ${book.author.lastName || ""}`
-              : typeof book.author === "string"
-              ? book.author
-              : "Unknown Author"}
-          </p>
-          <p className="mb-2 text-light">
-            <br /> <b>Category</b>
-            <br />
-            {book.category &&
-            Array.isArray(book.category) &&
-            book.category.length > 0
-              ? book.category[0]?.name || "Uncategorized"
-              : book.category?.name || "Uncategorized"}
-            <br /> <br /> <b>Published</b>
-            <br />
-            {book.publishedYear
-              ? book.publishedYear
-              : book.publishedDate
-              ? new Date(book.publishedDate).getFullYear()
-              : "Unknown Year"}{" "}
-            year
-          </p>
-          <p
-            className="card-text text-light flex-grow-1 mb-2"
-            style={{ minHeight: 48 }}
-          >
-            {(book.description || "No description available.").slice(0, 100)}
-            {book.description && book.description.length > 100 ? "..." : ""}
-          </p>
-          <div className="d-flex gap-2 mt-auto">
-            <Link
-              to={`/books/${book._id || book.id}`}
-              className="btn btn-outline-light btn-sm flex-fill fw-bold book-view-btn"
-            >
-              <FontAwesomeIcon icon={faEye} className="me-1" /> View Details
+
+        {/* Book Content */}
+        <div className="book-content">
+          <div className="book-info">
+            <h3 className="book-title">{book.title || "Untitled"}</h3>
+            <p className="book-author">
+              {book.author &&
+              typeof book.author === "object" &&
+              book.author.firstName
+                ? `${book.author.firstName} ${book.author.lastName || ""}`
+                : typeof book.author === "string"
+                ? book.author
+                : "Unknown Author"}
+            </p>
+
+            <div className="book-meta">
+              <span className="category">
+                {book.category &&
+                Array.isArray(book.category) &&
+                book.category.length > 0
+                  ? book.category[0]?.name || "Uncategorized"
+                  : book.category?.name || "Uncategorized"}
+              </span>
+              <span className="year">
+                {book.publishedYear
+                  ? book.publishedYear
+                  : book.publishedDate
+                  ? new Date(book.publishedDate).getFullYear()
+                  : "Unknown"}
+              </span>
+            </div>
+
+            <p className="book-description">
+              {(book.description || "No description available.").slice(0, 90)}
+              {book.description && book.description.length > 90 ? "..." : ""}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="book-actions">
+            <Link to={`/books/${book._id || book.id}`} className="btn-view">
+              <FontAwesomeIcon icon={faEye} />
+              View
             </Link>
+
             {isCheckingStatus ? (
-              <button
-                disabled
-                className="btn btn-outline-secondary btn-sm flex-fill fw-bold"
-              >
-                <FontAwesomeIcon icon={faSpinner} spin className="me-1" />{" "}
+              <button disabled className="btn-reserve checking">
+                <FontAwesomeIcon icon={faSpinner} spin />
                 Checking...
               </button>
             ) : reservationStatus === null ? (
               <button
                 onClick={handleReserveBook}
-                disabled={isReserving}
-                className="btn btn-success btn-sm flex-fill fw-bold"
+                disabled={isReserving || book.availableQuantity <= 0}
+                className={`btn-reserve ${
+                  book.availableQuantity <= 0 ? "disabled" : ""
+                }`}
               >
                 <FontAwesomeIcon
                   icon={isReserving ? faSpinner : faBookmark}
                   spin={isReserving}
-                  className="me-1"
                 />
                 {isReserving ? "Reserving..." : "Reserve"}
               </button>
             ) : reservationStatus === "pending" ? (
-              <button
-                disabled
-                className="btn btn-warning btn-sm flex-fill fw-bold text-dark"
-              >
-                <FontAwesomeIcon icon={faClock} className="me-1" /> Pending
-                Approval
+              <button disabled className="btn-reserve pending">
+                <FontAwesomeIcon icon={faClock} />
+                Pending
               </button>
             ) : (
-              <button
-                disabled
-                className="btn btn-secondary btn-sm flex-fill fw-bold"
-              >
-                <FontAwesomeIcon icon={faCheck} className="me-1" /> Reserved
+              <button disabled className="btn-reserve reserved">
+                <FontAwesomeIcon icon={faCheck} />
+                Reserved
               </button>
             )}
           </div>
@@ -288,18 +269,6 @@ function BookCard({ book }) {
       >
         {modalConfig.message}
       </Modal>
-
-      <style>{`
-        .book-outer {
-          display: flex;
-          justify-content: center;
-        }
-        .book-view-btn:hover {
-          background: #fff !important;
-          color: #111 !important;
-          border-color: #111 !important;
-        }
-      `}</style>
     </div>
   );
 }

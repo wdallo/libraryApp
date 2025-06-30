@@ -53,6 +53,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/books" element={<Books />} />
+        <Route path="/books/page/:pageNumber" element={<Books />} />
 
         <Route path="/books/:bookId" element={<BookView />} />
         <Route
@@ -64,6 +65,7 @@ function AppContent() {
           }
         />
         <Route path="/authors" element={<Authors />} />
+        <Route path="/authors/page/:pageNumber" element={<Authors />} />
         <Route
           path="/authors/new"
           element={
@@ -74,6 +76,7 @@ function AppContent() {
         />
         <Route path="/authors/:authorId/books" element={<AuthorBooks />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/categories/page/:pageNumber" element={<Categories />} />
         <Route
           path="/categories/new"
           element={
