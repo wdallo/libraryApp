@@ -1,4 +1,5 @@
 const express = require("express");
+const compression = require("compression");
 const cors = require("cors");
 const path = require("path");
 const mongoose = require("mongoose");
@@ -78,6 +79,21 @@ const limiter = rateLimit({
   },
 });
 
+app.use(
+  compression({
+    level: 6, // Compression level (0-9, 6 is good balance)
+    threshold: 1024, // Only compress responses larger than 1KB
+    filter: (req, res) => {
+      // Don't compress if the request includes a cache-control header to disable compression
+      if (req.headers["x-no-compression"]) {
+        return false;
+      }
+      // Use compression filter function
+      return compression.filter(req, res);
+    },
+  })
+);
+
 // Security middleware
 app.use(helmet());
 app.use(morgan("combined"));
@@ -134,10 +150,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/categories", bookCategoryRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/reservations", reservationRoutes);
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
 
 // Error handling middleware
 app.use(errorHandler);
