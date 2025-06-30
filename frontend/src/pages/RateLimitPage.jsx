@@ -1,4 +1,14 @@
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faExclamationTriangle,
+  faClock,
+  faInfoCircle,
+  faMousePointer,
+  faRefresh,
+  faHome,
+  faShieldAlt,
+} from "@fortawesome/free-solid-svg-icons";
 
 function RateLimitPage() {
   const handleRefresh = () => {
@@ -12,13 +22,20 @@ function RateLimitPage() {
           <div className="card border-warning">
             <div className="card-header bg-warning text-dark">
               <h4 className="mb-0">
-                <i className="fas fa-exclamation-triangle me-2"></i>
+                <FontAwesomeIcon
+                  icon={faExclamationTriangle}
+                  className="me-2"
+                />
                 Rate Limit Exceeded
               </h4>
             </div>
             <div className="card-body text-center">
               <div className="mb-4">
-                <i className="fas fa-clock fa-4x text-warning mb-3"></i>
+                <FontAwesomeIcon
+                  icon={faClock}
+                  size="4x"
+                  className="text-warning mb-3"
+                />
                 <h5>Too Many Requests</h5>
                 <p className="text-muted">
                   You have made too many requests in a short period of time.
@@ -27,7 +44,7 @@ function RateLimitPage() {
               </div>
 
               <div className="alert alert-info">
-                <i className="fas fa-info-circle me-2"></i>
+                <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
                 <strong>Rate Limit:</strong> 10000 requests per 15 minutes
               </div>
 
@@ -37,15 +54,24 @@ function RateLimitPage() {
                 </p>
                 <ul className="list-unstyled text-start">
                   <li className="mb-2">
-                    <i className="fas fa-clock text-primary me-2"></i>
+                    <FontAwesomeIcon
+                      icon={faClock}
+                      className="text-primary me-2"
+                    />
                     Wait for 15 minutes before making more requests
                   </li>
                   <li className="mb-2">
-                    <i className="fas fa-mouse-pointer text-primary me-2"></i>
+                    <FontAwesomeIcon
+                      icon={faMousePointer}
+                      className="text-primary me-2"
+                    />
                     Reduce the frequency of your clicks and actions
                   </li>
                   <li className="mb-2">
-                    <i className="fas fa-refresh text-primary me-2"></i>
+                    <FontAwesomeIcon
+                      icon={faRefresh}
+                      className="text-primary me-2"
+                    />
                     Try refreshing the page in a few minutes
                   </li>
                 </ul>
@@ -56,11 +82,11 @@ function RateLimitPage() {
                   onClick={handleRefresh}
                   className="btn btn-primary me-2"
                 >
-                  <i className="fas fa-refresh me-2"></i>
+                  <FontAwesomeIcon icon={faRefresh} className="me-2" />
                   Try Again
                 </button>
                 <Link to="/" className="btn btn-outline-secondary">
-                  <i className="fas fa-home me-2"></i>
+                  <FontAwesomeIcon icon={faHome} className="me-2" />
                   Return to Home
                 </Link>
               </div>
@@ -69,7 +95,7 @@ function RateLimitPage() {
 
               <div className="text-muted">
                 <small>
-                  <i className="fas fa-shield-alt me-1"></i>
+                  <FontAwesomeIcon icon={faShieldAlt} className="me-1" />
                   This limit helps protect our servers and ensures fair usage
                   for all users.
                 </small>

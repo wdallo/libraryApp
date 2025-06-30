@@ -323,7 +323,7 @@ function BookView() {
                   <strong>Author:</strong>
                 </div>
                 <div className="col-sm-9">
-                  {book.author?.firstname ? (
+                  {book.author?.firstName ? (
                     <Link
                       to={`/authors/${book.author._id}/books`}
                       className="text-decoration-none"

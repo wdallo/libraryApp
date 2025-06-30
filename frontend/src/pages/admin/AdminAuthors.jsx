@@ -15,6 +15,7 @@ import {
   faPen,
   faPlus,
   faTrash,
+  faUserEdit,
 } from "@fortawesome/free-solid-svg-icons";
 
 function AdminAuthors() {
@@ -171,7 +172,7 @@ function AdminAuthors() {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-black">
-          <i className="fas fa-user-edit me-2"></i>
+          <FontAwesomeIcon icon={faUserEdit} className="me-2" />
           Authors Management
         </h2>{" "}
         <Link to={-1} className="btn btn-outline-secondary">

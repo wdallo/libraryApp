@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHome, faBook } from "@fortawesome/free-solid-svg-icons";
 
 function NotFound() {
   return (
@@ -15,11 +17,11 @@ function NotFound() {
 
           <div className="d-flex gap-3 justify-content-center">
             <Link to="/" className="btn btn-dark">
-              <i className="fas fa-home me-2"></i>
+              <FontAwesomeIcon icon={faHome} className="me-2" />
               Go Home
             </Link>
             <Link to="/books" className="btn btn-outline-btn btn-outline-dark">
-              <i className="fas fa-book me-2"></i>
+              <FontAwesomeIcon icon={faBook} className="me-2" />
               Browse Books
             </Link>
           </div>

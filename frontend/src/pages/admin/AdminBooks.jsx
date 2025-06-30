@@ -14,6 +14,8 @@ import {
   faMagnifyingGlass,
   faPen,
   faTrash,
+  faBook,
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -264,10 +266,31 @@ function AdminBooks() {
           book.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           authorName.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesCategory =
-          !selectedCategory ||
-          book.category?._id === selectedCategory ||
-          book.category === selectedCategory;
+        // Fix category filtering logic
+        let matchesCategory = true;
+        if (selectedCategory) {
+          // If a category is selected, check if book matches
+          if (
+            book.category &&
+            Array.isArray(book.category) &&
+            book.category.length > 0
+          ) {
+            // Book has array of categories - check if selected category is in the array
+            matchesCategory = book.category.some(
+              (cat) =>
+                (typeof cat === "object" ? cat._id : cat) === selectedCategory
+            );
+          } else if (book.category && typeof book.category === "object") {
+            // Book has single category object
+            matchesCategory = book.category._id === selectedCategory;
+          } else if (typeof book.category === "string") {
+            // Book has category as string ID
+            matchesCategory = book.category === selectedCategory;
+          } else {
+            // Book has no category
+            matchesCategory = false;
+          }
+        }
 
         return matchesSearch && matchesCategory;
       })
@@ -281,7 +304,7 @@ function AdminBooks() {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-black">
-          <i className="fas fa-book me-2"></i>
+          <FontAwesomeIcon icon={faBook} className="me-2" />
           Books Management
         </h2>
         <Link to={-1} className="btn btn-outline-secondary">
@@ -324,7 +347,8 @@ function AdminBooks() {
           style={{ gap: "10px" }}
         >
           <Link to="/books/new" className="btn btn-dark">
-            <i className="fas fa-plus me-2"></i>Add New Book
+            <FontAwesomeIcon icon={faPlus} className="me-2" />
+            Add New Book
           </Link>
         </div>
       </div>

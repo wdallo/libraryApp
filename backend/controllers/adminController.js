@@ -25,19 +25,90 @@ const getAdminDashboard = asyncHandler(async (req, res) => {
       dueDate: { $lt: new Date() },
     });
 
-    // Get recent activity (last 10 reservations)
+    // Get recent activity (last 15 reservation actions)
     const recentReservations = await Reservation.find()
       .populate("user", "firstName lastName")
       .populate("book", "title")
-      .sort({ createdAt: -1 })
-      .limit(10);
+      .populate("approvedBy", "firstName lastName")
+      .populate("rejectedBy", "firstName lastName")
+      .populate("returnApprovedBy", "firstName lastName")
+      .sort({ updatedAt: -1 })
+      .limit(15);
 
-    const recentActivity = recentReservations.map((reservation) => ({
-      message: `${reservation.user?.firstName} ${reservation.user?.lastName} reserved "${reservation.book?.title}"`,
-      time: reservation.createdAt.toLocaleDateString(),
-      icon: "fa-bookmark",
-      color: "primary",
-    }));
+    const recentActivity = [];
+
+    recentReservations.forEach((reservation) => {
+      const userName =
+        `${reservation.user?.firstName || ""} ${
+          reservation.user?.lastName || ""
+        }`.trim() || "Unknown User";
+      const bookTitle = reservation.book?.title || "Unknown Book";
+
+      // Add the main reservation action
+      let message, icon, color, time;
+
+      switch (reservation.status) {
+        case "pending":
+          message = `${userName} requested to reserve "${bookTitle}"`;
+          icon = "fa-clock";
+          color = "warning";
+          time = reservation.createdAt;
+          break;
+        case "active":
+          const approverName = reservation.approvedBy
+            ? `${reservation.approvedBy.firstName || ""} ${
+                reservation.approvedBy.lastName || ""
+              }`.trim()
+            : "Admin";
+          message = `${approverName} approved reservation of "${bookTitle}" for ${userName}`;
+          icon = "fa-check-circle";
+          color = "success";
+          time = reservation.approvedAt || reservation.updatedAt;
+          break;
+        case "cancelled":
+          const rejectorName = reservation.rejectedBy
+            ? `${reservation.rejectedBy.firstName || ""} ${
+                reservation.rejectedBy.lastName || ""
+              }`.trim()
+            : "Admin";
+          message = `${rejectorName} rejected reservation of "${bookTitle}" by ${userName}`;
+          icon = "fa-times-circle";
+          color = "danger";
+          time = reservation.rejectedAt || reservation.updatedAt;
+          break;
+        case "pending_return":
+          message = `${userName} requested to return "${bookTitle}"`;
+          icon = "fa-undo";
+          color = "info";
+          time = reservation.updatedAt;
+          break;
+        case "returned":
+          const returnApproverName = reservation.returnApprovedBy
+            ? `${reservation.returnApprovedBy.firstName || ""} ${
+                reservation.returnApprovedBy.lastName || ""
+              }`.trim()
+            : "Admin";
+          message = `${returnApproverName} approved return of "${bookTitle}" from ${userName}`;
+          icon = "fa-check";
+          color = "secondary";
+          time = reservation.returnedAt || reservation.updatedAt;
+          break;
+        default:
+          message = `${userName} reserved "${bookTitle}"`;
+          icon = "fa-bookmark";
+          color = "primary";
+          time = reservation.createdAt;
+      }
+
+      recentActivity.push({
+        message,
+        time: time ? time.toLocaleDateString() : "Unknown",
+        icon,
+        color,
+        reservationId: reservation._id,
+        status: reservation.status,
+      });
+    });
 
     const stats = {
       totalUsers,

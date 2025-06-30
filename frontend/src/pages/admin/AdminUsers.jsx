@@ -15,6 +15,7 @@ import {
   faCheck,
   faMagnifyingGlass,
   faPen,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
 function AdminUsers() {
@@ -215,7 +216,7 @@ function AdminUsers() {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-black">
-          <i className="fas fa-users me-2"></i>
+          <FontAwesomeIcon icon={faUsers} className="me-2" />
           User Management
         </h2>
       </div>
