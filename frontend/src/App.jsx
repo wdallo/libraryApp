@@ -27,9 +27,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
-import BookForm from "./components/BookForm";
-import AuthorForm from "./components/AuthorForm";
-import CategoryForm from "./components/CategoryForm";
+import Form from "./components/Form";
 import {
   setupAxiosInterceptors,
   setNavigateFunction,
@@ -53,32 +51,35 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/books" element={<Books />} />
+        <Route path="/books/page/:pageNumber" element={<Books />} />
 
         <Route path="/books/:bookId" element={<BookView />} />
         <Route
           path="/books/new"
           element={
             <AdminProtectedRoute>
-              <BookForm />
+              <Form type="book" />
             </AdminProtectedRoute>
           }
         />
         <Route path="/authors" element={<Authors />} />
+        <Route path="/authors/page/:pageNumber" element={<Authors />} />
         <Route
           path="/authors/new"
           element={
             <AdminProtectedRoute>
-              <AuthorForm />
+              <Form type="author" />
             </AdminProtectedRoute>
           }
         />
         <Route path="/authors/:authorId/books" element={<AuthorBooks />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/categories/page/:pageNumber" element={<Categories />} />
         <Route
           path="/categories/new"
           element={
             <AdminProtectedRoute>
-              <CategoryForm />
+              <Form type="category" />
             </AdminProtectedRoute>
           }
         />
