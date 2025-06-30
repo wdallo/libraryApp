@@ -2,6 +2,20 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import apiClient from "../../utils/apiClient";
 import Loading from "../../components/Loading";
+import {
+  faTachometerAlt,
+  faUsers,
+  faBook,
+  faTags,
+  faBookmark,
+  faUserEdit,
+  faClock,
+  faCheckCircle,
+  faTimesCircle,
+  faUndo,
+  faCheck,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -59,7 +73,7 @@ function AdminDashboard() {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-black">
-          <i className="fas fa-tachometer-alt me-2"></i>
+          <FontAwesomeIcon icon={faTachometerAlt} className="me-2" />
           Admin Dashboard
         </h2>
       </div>
@@ -75,7 +89,7 @@ function AdminDashboard() {
                   <p className="card-text">Total Users</p>
                 </div>
                 <div className="align-self-center">
-                  <i className="fas fa-users fa-2x"></i>
+                  <FontAwesomeIcon icon={faUsers} size="2x" />
                 </div>
               </div>
             </div>
@@ -91,7 +105,7 @@ function AdminDashboard() {
                   <p className="card-text">Total Books</p>
                 </div>
                 <div className="align-self-center">
-                  <i className="fas fa-book fa-2x"></i>
+                  <FontAwesomeIcon icon={faBook} size="2x" />
                 </div>
               </div>
             </div>
@@ -107,7 +121,7 @@ function AdminDashboard() {
                   <p className="card-text">Categories</p>
                 </div>
                 <div className="align-self-center">
-                  <i className="fas fa-tags fa-2x"></i>
+                  <FontAwesomeIcon icon={faTags} size="2x" />
                 </div>
               </div>
             </div>
@@ -123,7 +137,7 @@ function AdminDashboard() {
                   <p className="card-text">Total Reservations</p>
                 </div>
                 <div className="align-self-center">
-                  <i className="fas fa-bookmark fa-2x"></i>
+                  <FontAwesomeIcon icon={faBookmark} size="2x" />
                 </div>
               </div>
             </div>
@@ -181,7 +195,7 @@ function AdminDashboard() {
                     to="/admin/users"
                     className="btn btn-outline-primary w-100"
                   >
-                    <i className="fas fa-users me-2"></i>
+                    <FontAwesomeIcon icon={faUsers} className="me-2" />
                     Manage Users
                   </Link>
                 </div>
@@ -190,7 +204,7 @@ function AdminDashboard() {
                     to="/admin/books"
                     className="btn btn-outline-success w-100"
                   >
-                    <i className="fas fa-book me-2"></i>
+                    <FontAwesomeIcon icon={faBook} className="me-2" />
                     Manage Books
                   </Link>
                 </div>
@@ -199,7 +213,7 @@ function AdminDashboard() {
                     to="/admin/categories"
                     className="btn btn-outline-info w-100"
                   >
-                    <i className="fas fa-tags me-2"></i>
+                    <FontAwesomeIcon icon={faTags} className="me-2" />
                     Manage Categories
                   </Link>
                 </div>
@@ -208,7 +222,7 @@ function AdminDashboard() {
                     to="/admin/authors"
                     className="btn btn-outline-secondary w-100"
                   >
-                    <i className="fas fa-user-edit me-2"></i>
+                    <FontAwesomeIcon icon={faUserEdit} className="me-2" />
                     Manage Authors
                   </Link>
                 </div>
@@ -217,7 +231,7 @@ function AdminDashboard() {
                     to="/admin/reservations"
                     className="btn btn-outline-warning w-100"
                   >
-                    <i className="fas fa-bookmark me-2"></i>
+                    <FontAwesomeIcon icon={faBookmark} className="me-2" />
                     Manage Reservations
                   </Link>
                 </div>
@@ -239,19 +253,41 @@ function AdminDashboard() {
                 <p className="text-muted">No recent activity</p>
               ) : (
                 <div className="list-group list-group-flush">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="list-group-item">
-                      <div className="d-flex justify-content-between">
-                        <div>
-                          <i
-                            className={`fas ${activity.icon} me-2 text-${activity.color}`}
-                          ></i>
-                          {activity.message}
+                  {recentActivity.map((activity, index) => {
+                    // Map icon strings to FontAwesome icons
+                    const getIcon = (iconName) => {
+                      switch (iconName) {
+                        case "fa-clock":
+                          return faClock;
+                        case "fa-check-circle":
+                          return faCheckCircle;
+                        case "fa-times-circle":
+                          return faTimesCircle;
+                        case "fa-undo":
+                          return faUndo;
+                        case "fa-check":
+                          return faCheck;
+                        case "fa-bookmark":
+                        default:
+                          return faBookmark;
+                      }
+                    };
+
+                    return (
+                      <div key={index} className="list-group-item">
+                        <div className="d-flex justify-content-between">
+                          <div>
+                            <FontAwesomeIcon
+                              icon={getIcon(activity.icon)}
+                              className={`me-2 text-${activity.color}`}
+                            />
+                            {activity.message}
+                          </div>
+                          <small className="text-muted">{activity.time}</small>
                         </div>
-                        <small className="text-muted">{activity.time}</small>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

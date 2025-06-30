@@ -42,6 +42,10 @@ const reserveBook = asyncHandler(async (req, res) => {
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 14); // 14 days from approval
 
+  // Reduce available quantity immediately when reservation is created
+  book.availableQuantity -= 1;
+  await book.save();
+
   const reservation = await Reservation.create({
     book: bookId,
     user: req.user._id,
@@ -51,7 +55,7 @@ const reserveBook = asyncHandler(async (req, res) => {
 
   const populatedReservation = await Reservation.findById(reservation._id)
     .populate("book", "title author picture")
-    .populate("user", "username email");
+    .populate("user", "firstName lastName email");
 
   res.status(201).json({
     message:
@@ -199,8 +203,8 @@ const approveBookReturn = asyncHandler(async (req, res) => {
 
   const populatedReservation = await Reservation.findById(reservation._id)
     .populate("book", "title author picture availableQuantity")
-    .populate("user", "username email")
-    .populate("returnApprovedBy", "username");
+    .populate("user", "firstName lastName email")
+    .populate("returnApprovedBy", "firstName lastName");
 
   res.status(200).json({
     message: "Book return approved successfully. Book quantity restored.",
@@ -291,23 +295,14 @@ const approveReservation = asyncHandler(async (req, res) => {
     throw new Error("Only pending reservations can be approved");
   }
 
-  // Check if book still has available quantity
+  // Check if book still exists (no need to check availability since it was already reserved)
   const book = await Book.findById(reservation.book);
   if (!book) {
     res.status(404);
     throw new Error("Book not found");
   }
 
-  if (book.availableQuantity <= 0) {
-    res.status(400);
-    throw new Error("Book is no longer available");
-  }
-
-  // Reduce available quantity
-  book.availableQuantity -= 1;
-  await book.save();
-
-  // Update reservation status
+  // Update reservation status (availability was already reduced when reservation was created)
   reservation.status = "active";
   reservation.approvedAt = new Date();
   reservation.approvedBy = req.user._id;
@@ -322,7 +317,7 @@ const approveReservation = asyncHandler(async (req, res) => {
   const populatedReservation = await Reservation.findById(reservation._id)
     .populate("book", "title author picture availableQuantity")
     .populate("user", "email firstName lastName")
-    .populate("approvedBy", "firstName");
+    .populate("approvedBy", "firstName lastName");
 
   res.status(200).json({
     message: "Reservation approved successfully",
@@ -349,6 +344,13 @@ const rejectReservation = asyncHandler(async (req, res) => {
     throw new Error("Only pending reservations can be rejected");
   }
 
+  // Restore book availability when reservation is rejected
+  const book = await Book.findById(reservation.book);
+  if (book) {
+    book.availableQuantity += 1;
+    await book.save();
+  }
+
   // Update reservation status
   reservation.status = "cancelled";
   reservation.rejectedAt = new Date();
@@ -359,8 +361,8 @@ const rejectReservation = asyncHandler(async (req, res) => {
 
   const populatedReservation = await Reservation.findById(reservation._id)
     .populate("book", "title author picture")
-    .populate("user", "username email firstName lastName")
-    .populate("rejectedBy", "firstName");
+    .populate("user", "email firstName lastName")
+    .populate("rejectedBy", "firstName lastName");
 
   res.status(200).json({
     message: "Reservation rejected successfully",

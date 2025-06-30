@@ -2,10 +2,18 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import apiClient from "../utils/apiClient";
 import Modal from "./Modal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faEye,
+  faSpinner,
+  faClock,
+  faCheck,
+  faBookmark,
+} from "@fortawesome/free-solid-svg-icons";
 
 function BookCard({ book }) {
   const [isReserving, setIsReserving] = useState(false);
-  const [isReserved, setIsReserved] = useState(false);
+  const [reservationStatus, setReservationStatus] = useState(null); // null, "pending", "active"
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
@@ -81,10 +89,15 @@ function BookCard({ book }) {
       const userReservations = response.data.reservations || [];
       const bookReservation = userReservations.find(
         (reservation) =>
-          reservation.book?._id === book._id && reservation.status === "active"
+          reservation.book?._id === book._id &&
+          (reservation.status === "active" || reservation.status === "pending")
       );
 
-      setIsReserved(!!bookReservation);
+      if (bookReservation) {
+        setReservationStatus(bookReservation.status);
+      } else {
+        setReservationStatus(null);
+      }
     } catch (error) {
       console.error("Error checking reservation status:", error);
     } finally {
@@ -122,8 +135,11 @@ function BookCard({ book }) {
               },
             }
           );
-          setIsReserved(true);
-          showAlert("Success", "Book reserved successfully!");
+          setReservationStatus("pending");
+          showAlert(
+            "Success",
+            "Book reservation submitted! Waiting for admin approval."
+          );
         } catch (error) {
           console.error("Error reserving book:", error);
           showAlert(
@@ -180,7 +196,6 @@ function BookCard({ book }) {
         <div className="card-body d-flex flex-column p-3">
           <h5 className="card-title mb-1">{book.title || "Untitled"}</h5>
           <p className="card-subtitle mb-1 text-light">
-            <i className="fas fa-user me-1"></i>
             {book.author &&
             typeof book.author === "object" &&
             book.author.firstName
@@ -218,34 +233,43 @@ function BookCard({ book }) {
               to={`/books/${book._id || book.id}`}
               className="btn btn-outline-light btn-sm flex-fill fw-bold book-view-btn"
             >
-              <i className="fas fa-eye me-1"></i> View Details
+              <FontAwesomeIcon icon={faEye} className="me-1" /> View Details
             </Link>
             {isCheckingStatus ? (
               <button
                 disabled
                 className="btn btn-outline-secondary btn-sm flex-fill fw-bold"
               >
-                <i className="fas fa-spinner fa-spin me-1"></i> Checking...
+                <FontAwesomeIcon icon={faSpinner} spin className="me-1" />{" "}
+                Checking...
               </button>
-            ) : !isReserved ? (
+            ) : reservationStatus === null ? (
               <button
                 onClick={handleReserveBook}
                 disabled={isReserving}
                 className="btn btn-success btn-sm flex-fill fw-bold"
               >
-                <i
-                  className={`fas ${
-                    isReserving ? "fa-spinner fa-spin" : "fa-bookmark"
-                  } me-1`}
-                ></i>
+                <FontAwesomeIcon
+                  icon={isReserving ? faSpinner : faBookmark}
+                  spin={isReserving}
+                  className="me-1"
+                />
                 {isReserving ? "Reserving..." : "Reserve"}
+              </button>
+            ) : reservationStatus === "pending" ? (
+              <button
+                disabled
+                className="btn btn-warning btn-sm flex-fill fw-bold text-dark"
+              >
+                <FontAwesomeIcon icon={faClock} className="me-1" /> Pending
+                Approval
               </button>
             ) : (
               <button
                 disabled
                 className="btn btn-secondary btn-sm flex-fill fw-bold"
               >
-                <i className="fas fa-check me-1"></i> Reserved
+                <FontAwesomeIcon icon={faCheck} className="me-1" /> Reserved
               </button>
             )}
           </div>

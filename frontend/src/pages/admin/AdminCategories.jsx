@@ -15,6 +15,8 @@ import {
   faPen,
   faPlus,
   faTrash,
+  faTags,
+  faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
 
 function AdminCategories() {
@@ -165,7 +167,7 @@ function AdminCategories() {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="text-black">
-          <i className="fas fa-tags me-2"></i>
+          <FontAwesomeIcon icon={faTags} className="me-2" />
           Categories Management
         </h2>{" "}
         <Link to={-1} className="btn btn-outline-secondary">
@@ -213,7 +215,7 @@ function AdminCategories() {
                   <th>Name</th>
                   <th>Description</th>
                   <th>Books</th>
-                  <th>Created</th>
+
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -257,11 +259,7 @@ function AdminCategories() {
                         {category.bookCount || 0}
                       </span>
                     </td>
-                    <td>
-                      {category.createdAt
-                        ? new Date(category.createdAt).toLocaleDateString()
-                        : "N/A"}
-                    </td>
+
                     <td>
                       <div className="btn-group btn-group-sm">
                         <button
@@ -290,7 +288,11 @@ function AdminCategories() {
 
       {filteredCategories.length === 0 && (
         <div className="text-center py-5">
-          <i className="fas fa-tags fa-3x text-muted mb-3"></i>
+          <FontAwesomeIcon
+            icon={faTags}
+            size="3x"
+            className="text-muted mb-3"
+          />
           <h4 className="text-muted">No categories found</h4>
           <p className="text-muted">
             {searchTerm
@@ -360,7 +362,7 @@ function AdminCategories() {
         </p>
         {selectedCategory?.bookCount > 0 && (
           <div className="alert alert-warning">
-            <i className="fas fa-exclamation-triangle me-2"></i>
+            <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
             This category contains {selectedCategory.bookCount} book(s).
           </div>
         )}

@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import apiClient from "../utils/apiClient";
 import { Link } from "react-router-dom";
 import Loading from "../components/Loading";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCalendar,
+  faClock,
+  faRedo,
+  faHourglassHalf,
+  faEye,
+  faPlusCircle,
+  faCheck,
+} from "@fortawesome/free-solid-svg-icons";
 
 function MyReservations() {
   const [reservations, setReservations] = useState([]);
@@ -127,23 +137,21 @@ function MyReservations() {
   const getStatusBadge = (status, dueDate) => {
     const daysUntilDue = getDaysUntilDue(dueDate);
 
-    if (status === "returned") {
-      return <span className="badge bg-success">Returned</span>;
+    //// case switch for right side text [ ]
+    switch (true) {
+      case status === "returned":
+        return <span className="badge bg-success">Returned</span>;
+      case status === "pending":
+        return <span className="badge bg-warning text-dark"> Pending</span>;
+      case status === "pending_return":
+        return <span className="badge bg-info">Pending Return</span>;
+      case status === "overdue" || daysUntilDue < 0:
+        return <span className="badge bg-danger">Overdue</span>;
+      case daysUntilDue <= 3:
+        return <span className="badge bg-warning text-dark">Due Soon</span>;
+      default:
+        return <span className="badge bg-primary">Active</span>;
     }
-
-    if (status === "pending_return") {
-      return <span className="badge bg-info">Pending Return</span>;
-    }
-
-    if (status === "overdue" || daysUntilDue < 0) {
-      return <span className="badge bg-danger">Overdue</span>;
-    }
-
-    if (daysUntilDue <= 3) {
-      return <span className="badge bg-warning text-dark">Due Soon</span>;
-    }
-
-    return <span className="badge bg-primary">Active</span>;
   };
 
   if (loading) {
@@ -191,22 +199,25 @@ function MyReservations() {
 
                   <div className="mb-3">
                     <p className="card-text mb-1">
-                      <i className="fas fa-calendar me-2"></i>
+                      <FontAwesomeIcon icon={faCalendar} className="me-2" />
                       <strong>Reserved:</strong>{" "}
                       {formatDate(reservation.reservedAt)}
                     </p>
                     <p className="card-text mb-1">
-                      <i className="fas fa-clock me-2"></i>
+                      <FontAwesomeIcon icon={faClock} className="me-2" />
                       <strong>Due:</strong> {formatDate(reservation.dueDate)}
                     </p>
                     <p className="card-text mb-1">
-                      <i className="fas fa-redo me-2"></i>
+                      <FontAwesomeIcon icon={faRedo} className="me-2" />
                       <strong>Extensions used:</strong>{" "}
                       {reservation.extensionsUsed}/2
                     </p>
                     {reservation.status === "active" && (
                       <p className="card-text mb-0">
-                        <i className="fas fa-hourglass-half me-2"></i>
+                        <FontAwesomeIcon
+                          icon={faHourglassHalf}
+                          className="me-2"
+                        />
                         <strong>Days remaining:</strong>{" "}
                         {getDaysUntilDue(reservation.dueDate)}
                       </p>
@@ -219,7 +230,8 @@ function MyReservations() {
                         to={`/books/${reservation.book?._id}`}
                         className="btn btn-outline-primary btn-sm"
                       >
-                        <i className="fas fa-eye me-1"></i> View Book
+                        <FontAwesomeIcon icon={faEye} className="me-1" /> View
+                        Book
                       </Link>
 
                       {reservation.status === "active" && (
@@ -231,22 +243,27 @@ function MyReservations() {
                               }
                               className="btn btn-warning btn-sm"
                             >
-                              <i className="fas fa-plus-circle me-1"></i> Extend
+                              <FontAwesomeIcon
+                                icon={faPlusCircle}
+                                className="me-1"
+                              />{" "}
+                              Extend
                             </button>
                           )}
                           <button
                             onClick={() => handleReturnBook(reservation._id)}
                             className="btn btn-success btn-sm"
                           >
-                            <i className="fas fa-check me-1"></i> Request Return
+                            <FontAwesomeIcon icon={faCheck} className="me-1" />{" "}
+                            Request Return
                           </button>
                         </>
                       )}
 
                       {reservation.status === "pending_return" && (
                         <span className="text-muted">
-                          <i className="fas fa-clock me-1"></i> Waiting for
-                          admin approval
+                          <FontAwesomeIcon icon={faClock} className="me-1" />{" "}
+                          Waiting for admin approval
                         </span>
                       )}
                     </div>

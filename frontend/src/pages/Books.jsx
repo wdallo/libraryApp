@@ -5,7 +5,7 @@ import Loading from "../components/Loading";
 import BookCard from "../components/BookCard";
 import Pagination from "../components/Pagination";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faPlus } from "@fortawesome/free-solid-svg-icons";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -183,7 +183,8 @@ function Books() {
 
         {user && user.role === "admin" && (
           <Link to="/add-book" className="btn btn-dark d-none">
-            <i className="fas fa-plus me-2"></i>Add New Book
+            <FontAwesomeIcon icon={faPlus} className="me-2" />
+            Add New Book
           </Link>
         )}
       </div>

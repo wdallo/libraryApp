@@ -1,5 +1,11 @@
 import { Link } from "react-router-dom";
 import RecentBooks from "../components/RecentBooks";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBook,
+  faLayerGroup,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 
 function Home() {
   return (
@@ -21,7 +27,11 @@ function Home() {
         <div className="col-md-4 mb-4">
           <div className="card h-100 bg-dark text-white border-white border-2 shadow">
             <div className="card-body text-center">
-              <i className="fas fa-book fa-3x text-white mb-3"></i>
+              <FontAwesomeIcon
+                icon={faBook}
+                size="3x"
+                className="text-white mb-3"
+              />
               <h5 className="card-title">Books Collection</h5>
               <p className="card-text">
                 Browse the catalog and reserve books for pickup or reading.
@@ -35,7 +45,11 @@ function Home() {
         <div className="col-md-4 mb-4">
           <div className="card h-100 bg-dark text-white border-white border-2 shadow">
             <div className="card-body text-center">
-              <i className="fas fa-user fa-3x text-white mb-3"></i>
+              <FontAwesomeIcon
+                icon={faUser}
+                size="3x"
+                className="text-white mb-3"
+              />
               <h5 className="card-title">Authors</h5>
               <p className="card-text">
                 Keep track of authors and their biographical information.
@@ -50,6 +64,11 @@ function Home() {
           <div className="card h-100 bg-dark text-white border-white border-2 shadow">
             <div className="card-body text-center">
               <i className="fas fa-tags fa-3x text-white mb-3"></i>
+              <FontAwesomeIcon
+                icon={faLayerGroup}
+                size="3x"
+                className="text-white mb-3"
+              />
               <h5 className="card-title">Categories</h5>
               <p className="card-text ">
                 Organize books by categories for easy browsing and searching.

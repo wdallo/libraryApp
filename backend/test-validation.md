@@ -67,6 +67,12 @@ Update:
 - dueDate (optional, must be future date)
 ```
 
+**Availability Management:**
+
+- Book availability is reduced immediately when reservation is created (pending status)
+- Availability is restored if reservation is rejected by admin
+- Availability is restored when book is returned and approved by admin
+
 ## 🚀 Applied to Routes
 
 ### Book Routes (`/api/books`)
