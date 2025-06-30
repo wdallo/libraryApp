@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
-import {
-  useFormValidation,
-  ValidatedInput,
-} from "../hooks/useFormValidation.jsx";
+import useFormValidation from "../hooks/useFormValidation.jsx";
+import { ValidatedInput } from "../components/ValidationComponents.jsx";
 import { getValidationErrorsArray } from "../utils/validation";
 
 function Login() {

@@ -73,12 +73,20 @@ const getBooks = asyncHandler(async (req, res) => {
  */
 const updateBook = asyncHandler(async (req, res) => {
   try {
+    console.log("📖 updateBook - Received data:", {
+      id: req.params.id,
+      body: req.body,
+    });
+
     const book = await Book.findById(req.params.id);
 
     if (!book) {
+      console.log("❌ updateBook - Book not found:", req.params.id);
       res.status(404);
       throw new Error("Book not found");
     }
+
+    console.log("📖 updateBook - Found book:", book.title);
 
     const {
       title,
@@ -87,7 +95,6 @@ const updateBook = asyncHandler(async (req, res) => {
       description,
       pages,
       language,
-      publisher,
       publishedDate,
       totalQuantity,
       availableQuantity,
@@ -100,7 +107,6 @@ const updateBook = asyncHandler(async (req, res) => {
     book.description = description || book.description;
     book.pages = pages || book.pages;
     book.language = language || book.language;
-    book.publisher = publisher || book.publisher;
     book.publishedDate = publishedDate || book.publishedDate;
     book.totalQuantity =
       totalQuantity !== undefined
@@ -111,13 +117,26 @@ const updateBook = asyncHandler(async (req, res) => {
         ? parseInt(availableQuantity)
         : book.availableQuantity;
 
+    console.log("📖 updateBook - About to save book with data:", {
+      title: book.title,
+      author: book.author,
+      category: book.category,
+      totalQuantity: book.totalQuantity,
+      availableQuantity: book.availableQuantity,
+    });
+
     const updatedBook = await book.save();
+    console.log("✅ updateBook - Book saved successfully");
+
     await updatedBook.populate("category", "name");
+    console.log("✅ updateBook - Book populated successfully");
 
     res.json(updatedBook);
   } catch (error) {
+    console.error("❌ updateBook - Error:", error.message);
+    console.error("❌ updateBook - Stack:", error.stack);
     res.status(500);
-    throw new Error("Error updating book");
+    throw new Error(`Error updating book: ${error.message}`);
   }
 });
 
@@ -195,7 +214,6 @@ const createBook = asyncHandler(async (req, res) => {
     category,
     releaseYear,
     publishedDate,
-    isbn,
     pages,
     language,
     totalQuantity,
@@ -231,7 +249,6 @@ const createBook = asyncHandler(async (req, res) => {
     category: Array.isArray(category) ? category : [category], // Ensure category is always an array
     releaseYear: releaseYear || publishedDate,
     publishedDate: publishedDate || releaseYear,
-    isbn,
     pages: pages ? parseInt(pages) : undefined,
     language: language || "English",
     totalQuantity: totalQuantity ? parseInt(totalQuantity) : 1,

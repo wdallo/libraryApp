@@ -18,7 +18,13 @@ class ValidationError extends Error {
 const validators = {
   // String validators
   isRequired: (value, fieldName) => {
-    if (!value || (typeof value === "string" && value.trim() === "")) {
+    // For required validation, we need to handle different types properly
+    // 0 is a valid value for numbers, so we should not reject it
+    if (
+      value === null ||
+      value === undefined ||
+      (typeof value === "string" && value.trim() === "")
+    ) {
       throw new ValidationError(fieldName, `${fieldName} is required`);
     }
     return true;
@@ -67,6 +73,11 @@ const validators = {
   },
 
   isInt: (value, options, fieldName) => {
+    // Handle empty values - let other validators handle required validation
+    if (value === null || value === undefined || value === "") {
+      return true;
+    }
+
     const num = parseInt(value);
     if (isNaN(num)) {
       throw new ValidationError(fieldName, `${fieldName} must be a number`);
@@ -233,8 +244,8 @@ export const validationRules = {
     description: [
       {
         validator: "isLength",
-        options: { max: 1000 },
-        message: "Description cannot exceed 1000 characters",
+        options: { max: 10000 },
+        message: "Description cannot exceed 10000 characters",
       },
     ],
     pages: [
@@ -278,8 +289,8 @@ export const validationRules = {
     bio: [
       {
         validator: "isLength",
-        options: { max: 1000 },
-        message: "Bio cannot exceed 1000 characters",
+        options: { max: 3000 },
+        message: "Bio cannot exceed 3000 characters",
       },
     ],
   },
@@ -297,8 +308,8 @@ export const validationRules = {
     description: [
       {
         validator: "isLength",
-        options: { max: 500 },
-        message: "Description cannot exceed 500 characters",
+        options: { max: 2000 },
+        message: "Description cannot exceed 2000 characters",
       },
     ],
   },
@@ -334,7 +345,13 @@ export const validateField = (
   const errors = [];
 
   // Skip validation for optional fields that are empty
-  if (!value && !fieldRules.some((rule) => rule.validator === "isRequired")) {
+  // Note: 0 is a valid value for numbers, so we need to check more specifically
+  const isEmpty =
+    value === null ||
+    value === undefined ||
+    (typeof value === "string" && value.trim() === "");
+
+  if (isEmpty && !fieldRules.some((rule) => rule.validator === "isRequired")) {
     return { isValid: true, errors: [] };
   }
 

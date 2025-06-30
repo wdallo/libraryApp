@@ -4,6 +4,11 @@ import Loading from "../../components/Loading";
 import Modal from "../../components/Modal";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import useFormValidation from "../../hooks/useFormValidation";
+import {
+  ValidatedInput,
+  ValidatedTextarea,
+} from "../../components/ValidationComponents";
 import {
   faBackward,
   faMagnifyingGlass,
@@ -19,10 +24,15 @@ function AdminCategories() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-  });
+
+  // Category form validation
+  const categoryFormValidation = useFormValidation(
+    {
+      name: "",
+      description: "",
+    },
+    "category"
+  );
 
   useEffect(() => {
     fetchCategories();
@@ -41,7 +51,7 @@ function AdminCategories() {
 
   const handleEditCategory = (category) => {
     setSelectedCategory(category);
-    setFormData({
+    categoryFormValidation.setMultipleValues({
       name: category.name,
       description: category.description || "",
     });
@@ -53,7 +63,17 @@ function AdminCategories() {
     setShowDeleteModal(true);
   };
 
-  const submitEditCategory = async () => {
+  const submitEditCategory = async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+
+    // Validate the form
+    const isValid = await categoryFormValidation.validate();
+    if (!isValid) {
+      return;
+    }
+
     let user = localStorage.getItem("user") || sessionStorage.getItem("user");
     let token = "";
 
@@ -67,16 +87,33 @@ function AdminCategories() {
     if (!token) return;
 
     try {
-      await apiClient.put(`/api/categories/${selectedCategory._id}`, formData, {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
+      await apiClient.put(
+        `/api/categories/${selectedCategory._id}`,
+        categoryFormValidation.values,
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setShowEditModal(false);
+      categoryFormValidation.reset();
       fetchCategories();
     } catch (error) {
       console.error("Error updating category:", error);
-      alert(error.response?.data?.message || "Failed to update category");
+
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const backendErrors = {};
+        error.response.data.errors.forEach((err) => {
+          if (err.path) {
+            backendErrors[err.path] = [err.msg];
+          }
+        });
+        categoryFormValidation.setServerErrors(backendErrors);
+      } else {
+        alert(error.response?.data?.message || "Failed to update category");
+      }
     }
   };
 
@@ -272,39 +309,34 @@ function AdminCategories() {
       {/* Edit Category Modal */}
       <Modal
         show={showEditModal}
-        onHide={() => setShowEditModal(false)}
+        onHide={() => {
+          setShowEditModal(false);
+          categoryFormValidation.reset();
+        }}
         title="Edit Category"
         type="confirm"
         onConfirm={submitEditCategory}
         confirmText="Update"
         confirmButtonClass="btn-primary"
+        confirmDisabled={
+          !categoryFormValidation.isValid || categoryFormValidation.isSubmitting
+        }
       >
-        <form>
-          <div className="mb-3">
-            <label className="form-label">Category Name</label>
-            <input
-              type="text"
-              className="form-control"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Enter category name"
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Description</label>
-            <textarea
-              className="form-control"
-              rows="3"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Enter category description (optional)"
-            />
-          </div>
+        <form onSubmit={submitEditCategory}>
+          <ValidatedInput
+            label="Category Name"
+            fieldName="name"
+            required={true}
+            formValidation={categoryFormValidation}
+            placeholder="Enter category name"
+          />
+          <ValidatedTextarea
+            label="Description"
+            fieldName="description"
+            formValidation={categoryFormValidation}
+            rows={3}
+            placeholder="Enter category description (optional)"
+          />
         </form>
       </Modal>
 

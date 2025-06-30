@@ -141,7 +141,13 @@ function BookCard({ book }) {
     <div className="book-outer mb-4">
       <div
         className="card bg-dark text-white border-white border-2 shadow"
-        style={{ maxWidth: 320, minHeight: 480, borderRadius: 16 }}
+        style={{
+          maxWidth: 320,
+          minWidth: 320,
+          minHeight: 670,
+          maxHeight: 670,
+          borderRadius: 16,
+        }}
       >
         <div
           className="book-image-wrap card-img-top"

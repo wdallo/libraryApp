@@ -99,8 +99,8 @@ const validateBook = [
   body("description")
     .optional()
     .trim()
-    .isLength({ max: 1000 })
-    .withMessage("Description cannot exceed 1000 characters"),
+    .isLength({ max: 10000 })
+    .withMessage("Description cannot exceed 10000 characters"),
 
   body("pages")
     .optional()
@@ -145,8 +145,8 @@ const validateAuthor = [
   body("bio")
     .optional()
     .trim()
-    .isLength({ max: 1000 })
-    .withMessage("Bio cannot exceed 1000 characters"),
+    .isLength({ max: 3000 })
+    .withMessage("Bio cannot exceed 3000 characters"),
 
   handleValidationErrors,
 ];
@@ -163,8 +163,8 @@ const validateCategory = [
   body("description")
     .optional()
     .trim()
-    .isLength({ max: 500 })
-    .withMessage("Description cannot exceed 500 characters"),
+    .isLength({ max: 2000 })
+    .withMessage("Description cannot exceed 2000 characters"),
 
   handleValidationErrors,
 ];

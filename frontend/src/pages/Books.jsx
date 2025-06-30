@@ -9,10 +9,13 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 function Books() {
   const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const booksPerPage = 6; // You can adjust this number
 
   useEffect(() => {
@@ -47,6 +50,7 @@ function Books() {
             console.log("Books.jsx - First book structure:", res.data[0]);
           }
           setBooks(res.data);
+          setFilteredBooks(res.data);
           setTotalPages(Math.ceil(res.data.length / booksPerPage));
         } else if (res.data && Array.isArray(res.data.books)) {
           console.log(
@@ -58,6 +62,7 @@ function Books() {
             console.log("Books.jsx - First book structure:", res.data.books[0]);
           }
           setBooks(res.data.books);
+          setFilteredBooks(res.data.books);
           setTotalPages(Math.ceil(res.data.books.length / booksPerPage));
         } else {
           console.log(
@@ -86,11 +91,64 @@ function Books() {
       });
   }, []);
 
+  // Filter books based on search term and category
+  useEffect(() => {
+    let filtered = books;
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter((book) => {
+        const titleMatch = book.title
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
+
+        // Handle author search for both object and string types
+        let authorMatch = false;
+        if (book.author && typeof book.author === "object") {
+          const authorName = `${book.author.firstName || ""} ${
+            book.author.lastName || ""
+          }`.trim();
+          authorMatch = authorName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+        } else if (typeof book.author === "string") {
+          authorMatch = book.author
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+        }
+
+        return titleMatch || authorMatch;
+      });
+    }
+
+    // Apply category filter
+    if (selectedCategory.trim()) {
+      filtered = filtered.filter((book) => {
+        if (book.category) {
+          if (typeof book.category === "string") {
+            return book.category === selectedCategory;
+          } else if (Array.isArray(book.category)) {
+            return book.category.some(
+              (cat) => (cat.name || cat) === selectedCategory
+            );
+          } else if (book.category.name) {
+            return book.category.name === selectedCategory;
+          }
+        }
+        return false;
+      });
+    }
+
+    setFilteredBooks(filtered);
+    setTotalPages(Math.ceil(filtered.length / booksPerPage));
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [books, searchTerm, selectedCategory, booksPerPage]);
+
   // Calculate books to display for current page
   const getCurrentPageBooks = () => {
     const startIndex = (currentPage - 1) * booksPerPage;
     const endIndex = startIndex + booksPerPage;
-    return books.slice(startIndex, endIndex);
+    return filteredBooks.slice(startIndex, endIndex);
   };
 
   const handlePageChange = (page) => {
@@ -146,7 +204,9 @@ function Books() {
             <input
               type="text"
               className="form-control border-dark"
-              placeholder="Search books available for reservation..."
+              placeholder="Search books by title or author..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="btn btn-outline-dark" type="button">
               <FontAwesomeIcon icon={faMagnifyingGlass} />
@@ -154,7 +214,11 @@ function Books() {
           </div>
         </div>
         <div className="col-md-4">
-          <select className="form-select border-dark">
+          <select
+            className="form-select border-dark"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
             <option value="">All Categories</option>
             {Array.from(
               new Set(
@@ -182,28 +246,61 @@ function Books() {
       </div>
 
       {/* Books Grid */}
-      {books.length === 0 ? (
+      {filteredBooks.length === 0 ? (
         <div className="text-center text-muted my-5">
-          <img
-            style={{ marginBottom: "50px" }}
-            src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
-          ></img>
-
-          <h4>No books available for reservation.</h4>
-          <p>Check back later or contact the library for more information.</p>
+          {books.length === 0 ? (
+            <>
+              <img
+                style={{ marginBottom: "50px" }}
+                src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
+                alt="No data"
+              />
+              <h4>No books available for reservation.</h4>
+              <p>
+                Check back later or contact the library for more information.
+              </p>
+            </>
+          ) : (
+            <>
+              <h4>No books match your search criteria.</h4>
+              <p>Try adjusting your search terms or category filter.</p>
+              <button
+                className="btn btn-outline-dark"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("");
+                }}
+              >
+                Clear Filters
+              </button>
+            </>
+          )}
         </div>
       ) : (
-        <div className="row">
-          {getCurrentPageBooks().map((book) => (
-            <div key={book._id || book.id} className="col-md-4 mb-4">
-              <BookCard book={book} />
-            </div>
-          ))}
-        </div>
+        <>
+          {/* Results summary */}
+          <div className="mb-3">
+            <small className="text-muted">
+              Showing {getCurrentPageBooks().length} of {filteredBooks.length}{" "}
+              books
+              {(searchTerm || selectedCategory) && (
+                <span> (filtered from {books.length} total)</span>
+              )}
+            </small>
+          </div>
+
+          <div className="row">
+            {getCurrentPageBooks().map((book) => (
+              <div key={book._id || book.id} className="col-md-4 mb-4">
+                <BookCard book={book} />
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Pagination Component */}
-      {books.length > booksPerPage && (
+      {filteredBooks.length > booksPerPage && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

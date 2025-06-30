@@ -16,11 +16,12 @@ The frontend validation system provides:
 
 ```
 frontend/src/
-├── utils/validation.js          # Core validation rules and functions
-├── hooks/useFormValidation.jsx  # React hook for form validation
+├── utils/validation.js              # Core validation rules and functions
+├── hooks/useFormValidation.jsx      # React hook for form validation
+├── components/ValidationComponents.jsx # Validation form components
 └── pages/
-    ├── Login.jsx               # Example: Login form with validation
-    └── Register.jsx            # Example: Registration form with validation
+    ├── Login.jsx                   # Example: Login form with validation
+    └── Register.jsx                # Example: Registration form with validation
 ```
 
 ## Quick Start
@@ -28,12 +29,12 @@ frontend/src/
 ### 1. Import the validation hook and components
 
 ```javascript
+import useFormValidation from "../hooks/useFormValidation.jsx";
 import {
-  useFormValidation,
   ValidatedInput,
   ValidatedSelect,
   ValidatedTextarea,
-} from "../hooks/useFormValidation.jsx";
+} from "../components/ValidationComponents.jsx";
 ```
 
 ### 2. Set up form validation in your component
@@ -227,6 +228,65 @@ const handleSubmit = formValidation.handleSubmit(async (values) => {
 }
 ```
 
+## Important Notes for Modal Forms
+
+When using validation in modal forms that have both form submission and modal confirmation:
+
+1. **Event Handling**: Form submission handlers should handle cases where the event parameter might be undefined:
+
+```javascript
+const handleSubmit = async (e) => {
+  // Handle both form submission and modal confirmation
+  if (e && e.preventDefault) {
+    e.preventDefault();
+  }
+
+  // Validate the form
+  const isValid = await formValidation.validate();
+  if (!isValid) {
+    return;
+  }
+
+  // Process form data
+  // ...
+};
+```
+
+2. **Modal Integration**: When using with Modal components, ensure proper cleanup:
+
+```javascript
+<Modal
+  show={showModal}
+  onHide={() => {
+    setShowModal(false);
+    formValidation.reset(); // Reset form state
+  }}
+  onConfirm={handleSubmit}
+  confirmDisabled={!formValidation.isValid || formValidation.isSubmitting}
+>
+  <form onSubmit={handleSubmit}>{/* Form fields */}</form>
+</Modal>
+```
+
+3. **Error Handling**: Backend validation errors should be handled properly:
+
+```javascript
+} catch (error) {
+  if (error.response?.data?.errors) {
+    const backendErrors = {};
+    error.response.data.errors.forEach(err => {
+      if (err.path) {
+        backendErrors[err.path] = [err.msg];
+      }
+    });
+    formValidation.setServerErrors(backendErrors);
+  } else {
+    // Handle other types of errors
+    alert(error.response?.data?.message || "Operation failed");
+  }
+}
+```
+
 ## Advanced Usage
 
 ### Custom Validation Rules
@@ -273,13 +333,11 @@ useEffect(() => {
 
 To migrate existing forms:
 
-1. **Import validation hooks**:
+1. **Import validation hooks and components**:
 
    ```javascript
-   import {
-     useFormValidation,
-     ValidatedInput,
-   } from "../hooks/useFormValidation.jsx";
+   import useFormValidation from "../hooks/useFormValidation.jsx";
+   import { ValidatedInput } from "../components/ValidationComponents.jsx";
    ```
 
 2. **Replace useState with useFormValidation**:

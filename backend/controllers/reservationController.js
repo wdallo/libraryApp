@@ -123,7 +123,7 @@ const extendReservation = asyncHandler(async (req, res) => {
 
   const populatedReservation = await Reservation.findById(reservation._id)
     .populate("book", "title author picture")
-    .populate("user", "username email");
+    .populate("user", "firstName lastName email");
 
   res.status(200).json({
     message: `Reservation extended successfully. ${
@@ -257,7 +257,7 @@ const getAllReservations = asyncHandler(async (req, res) => {
 
   const reservations = await Reservation.find(query)
     .populate("book", "title author picture")
-    .populate("user", "username email")
+    .populate("user", "email firstName lastName")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
@@ -321,8 +321,8 @@ const approveReservation = asyncHandler(async (req, res) => {
 
   const populatedReservation = await Reservation.findById(reservation._id)
     .populate("book", "title author picture availableQuantity")
-    .populate("user", "username email")
-    .populate("approvedBy", "username");
+    .populate("user", "email firstName lastName")
+    .populate("approvedBy", "firstName");
 
   res.status(200).json({
     message: "Reservation approved successfully",
@@ -359,8 +359,8 @@ const rejectReservation = asyncHandler(async (req, res) => {
 
   const populatedReservation = await Reservation.findById(reservation._id)
     .populate("book", "title author picture")
-    .populate("user", "username email")
-    .populate("rejectedBy", "username");
+    .populate("user", "username email firstName lastName")
+    .populate("rejectedBy", "firstName");
 
   res.status(200).json({
     message: "Reservation rejected successfully",
@@ -378,7 +378,7 @@ const getPendingReservations = asyncHandler(async (req, res) => {
 
   const reservations = await Reservation.find({ status: "pending" })
     .populate("book", "title author picture availableQuantity")
-    .populate("user", "username email firstName lastName")
+    .populate("user", "email firstName lastName")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);

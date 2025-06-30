@@ -75,9 +75,14 @@ function AdminReservations() {
   };
 
   const handleApproveReservation = (reservation) => {
+    const userName =
+      reservation.user?.firstName && reservation.user?.lastName
+        ? `${reservation.user.firstName} ${reservation.user.lastName}`
+        : "Unknown User";
+
     showConfirm(
       "Approve Reservation",
-      `Are you sure you want to approve the reservation for "${reservation.book?.title}" by ${reservation.user?.firstName}  ${reservation.user?.lastName}?`,
+      `Are you sure you want to approve the reservation for "${reservation.book?.title}" by ${userName}?`,
       async () => {
         await processReservation(reservation._id, "approve");
       }
@@ -85,9 +90,14 @@ function AdminReservations() {
   };
 
   const handleRejectReservation = (reservation) => {
+    const userName =
+      reservation.user?.firstName && reservation.user?.lastName
+        ? `${reservation.user.firstName} ${reservation.user.lastName}`
+        : "Unknown User";
+
     showConfirm(
       "Reject Reservation",
-      `Are you sure you want to reject the reservation for "${reservation.book?.title}" by ${reservation.user?.firstName}  ${reservation.user?.lastName}?`,
+      `Are you sure you want to reject the reservation for "${reservation.book?.title}" by ${userName}?`,
       async () => {
         await processReservation(reservation._id, "reject");
       }
@@ -95,9 +105,14 @@ function AdminReservations() {
   };
 
   const handleApproveReturn = (reservation) => {
+    const userName =
+      reservation.user?.firstName && reservation.user?.lastName
+        ? `${reservation.user.firstName} ${reservation.user.lastName}`
+        : "Unknown User";
+
     showConfirm(
       "Approve Return",
-      `Are you sure you want to approve the return of "${reservation.book?.title}" by ${reservation.user?.firstName} ${reservation.user?.lastName}?`,
+      `Are you sure you want to approve the return of "${reservation.book?.title}" by ${userName}?`,
       async () => {
         await processReturn(reservation._id);
       }
@@ -320,9 +335,10 @@ function AdminReservations() {
                       <td>
                         <div>
                           <div className="fw-bold">
-                            {reservation.user?.firstName +
-                              " " +
-                              reservation.user?.lastName || "Unknown User"}
+                            {reservation.user?.firstName &&
+                            reservation.user?.lastName
+                              ? `${reservation.user.firstName} ${reservation.user.lastName}`
+                              : "Unknown User"}
                           </div>
                           <small className="text-muted">
                             {reservation.user?.email}
