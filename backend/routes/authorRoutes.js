@@ -9,6 +9,7 @@ const {
   deleteAuthor,
 } = require("../controllers/authorController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
+const { validateAuthor } = require("../middleware/validation");
 
 const router = express.Router();
 
@@ -45,8 +46,22 @@ router.get("/", getAuthors);
 router.get("/:id", getAuthorById);
 
 // Protected routes (admin only)
-router.post("/", protect, adminOnly, upload.single("picture"), createAuthor);
-router.put("/:id", protect, adminOnly, upload.single("picture"), updateAuthor);
+router.post(
+  "/",
+  protect,
+  adminOnly,
+  upload.single("picture"),
+  validateAuthor,
+  createAuthor
+);
+router.put(
+  "/:id",
+  protect,
+  adminOnly,
+  upload.single("picture"),
+  validateAuthor,
+  updateAuthor
+);
 router.delete("/:id", protect, adminOnly, deleteAuthor);
 
 module.exports = router;

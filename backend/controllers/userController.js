@@ -2,20 +2,19 @@ const User = require("../models/User");
 const { generateToken } = require("../functions/generateToken");
 const bcryptjs = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
-const { validateEmail } = require("../functions/emailRegix");
 
 // Register a new user
 const registerUser = asyncHandler(async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
 
-  if (!firstName || !lastName || !email || !password) {
-    res.status(400);
-    throw new Error("Please fill all the fields");
-  }
-  if (!validateEmail(email)) {
-    res.status(400);
-    throw new Error("Please enter a valid email address");
-  }
+  // Debug logging
+  console.log("Registration request body:", req.body);
+  console.log("Extracted fields:", {
+    firstName,
+    lastName,
+    email,
+    password: password ? "***" : undefined,
+  });
 
   // Check for existing email
   const emailExists = await User.findOne({ email });
@@ -27,15 +26,24 @@ const registerUser = asyncHandler(async (req, res) => {
   const salt = await bcryptjs.genSalt(10);
   const hashedPassword = await bcryptjs.hash(password, salt);
 
+  console.log("Attempting to create user with data:", {
+    firstName,
+    lastName,
+    email,
+    status: "active",
+  });
+
   const user = await User.create({
     firstName,
     lastName,
     email,
     password: hashedPassword,
     role: "user",
-    status: true,
+    status: "active",
     lastLogin: null,
   });
+
+  console.log("User created successfully:", user.email);
 
   const token = generateToken(user.id);
   if (user) {
@@ -58,10 +66,25 @@ const registerUser = asyncHandler(async (req, res) => {
 // login user
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
+  // Debug logging
+  console.log("Login request body:", req.body);
+  console.log("Extracted fields:", {
+    email,
+    password: password ? "***" : undefined,
+  });
+
   const user = await User.findOne({ email });
+  console.log("User found:", user ? `Yes (${user.email})` : "No");
+
+  if (user) {
+    const passwordMatch = await bcryptjs.compare(password, user.password);
+    console.log("Password match:", passwordMatch);
+    console.log("User status:", user.status);
+  }
 
   if (user && (await bcryptjs.compare(password, user.password))) {
-    if (!user.status) {
+    if (user.status === "banned") {
       res.status(403);
       throw new Error("Account is inactive. Contact admin.");
     }
@@ -114,9 +137,9 @@ const updateUser = asyncHandler(async (req, res) => {
   if (req.body.role && req.user.role === "admin") {
     user.role = req.body.role;
   }
-  // Allow admin to update status (ban/disable user)
-  if (typeof req.body.status === "boolean" && req.user.role === "admin") {
-    user.status = req.body.status;
+  // Allow admin to update status (ban/unban user)
+  if (req.body.status && req.user.role === "admin") {
+    user.status = req.body.status; // Should be "active" or "banned"
   }
   await user.save();
   res.json({

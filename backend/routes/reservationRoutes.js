@@ -12,11 +12,12 @@ const {
   getPendingReservations,
 } = require("../controllers/reservationController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
+const { validateReservation } = require("../middleware/validation");
 
 const router = express.Router();
 
 // User routes
-router.post("/", protect, reserveBook);
+router.post("/", protect, validateReservation, reserveBook);
 router.get("/", protect, getUserReservations);
 router.put("/:id/extend", protect, extendReservation);
 router.put("/:id/return", protect, requestBookReturn);

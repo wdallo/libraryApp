@@ -2,19 +2,29 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Modal from "../components/Modal";
+import {
+  useFormValidation,
+  ValidatedInput,
+} from "../hooks/useFormValidation.jsx";
+import { getValidationErrorsArray } from "../utils/validation";
 
 function Register() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
   const [showTerms, setShowTerms] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Form validation setup
+  const formValidation = useFormValidation(
+    {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    "userRegistration"
+  );
 
   useEffect(() => {
     const user = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -23,35 +33,56 @@ function Register() {
     }
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = formValidation.handleSubmit(async (values) => {
     setError("");
-    if (formData.password !== formData.confirmPassword) {
+
+    // Debug logging
+    console.log("Frontend - Form values:", values);
+    console.log("Frontend - Form validation state:", {
+      isValid: formValidation.isValid,
+      errors: formValidation.errors,
+      touched: formValidation.touched,
+    });
+
+    // Check password confirmation
+    if (values.password !== values.confirmPassword) {
       setError("Passwords don't match!");
       return;
     }
+
     setLoading(true);
     try {
-      const response = await apiClient.post("/api/users/register", formData);
+      // Remove confirmPassword before sending to API
+      const { confirmPassword, ...registrationData } = values;
+      console.log("Frontend - Sending data to API:", registrationData);
+
+      const response = await apiClient.post(
+        "/api/users/register",
+        registrationData
+      );
       setError("");
       setShowSuccess(true);
-
       console.log("Registration success:", response.data);
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Registration failed. Please try again."
-      );
+      console.error("Registration error:", err);
+      console.error("Error response:", err.response?.data);
+
+      // Handle validation errors from backend
+      if (err.response?.data?.errors) {
+        const backendErrors = getValidationErrorsArray(
+          err.response.data.errors
+        );
+        setError(backendErrors.join(", "));
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "Registration failed. Please try again."
+        );
+      }
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   return (
     <div className="container mt-5">
@@ -67,87 +98,75 @@ function Register() {
                 <div className="alert alert-danger text-center">{error}</div>
               )}
               <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="firstName" className="form-label">
-                    Firstname:
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter Your Firstname"
-                    autoComplete="firstName"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="lastName" className="form-label">
-                    Lastname:
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter Your Lastname"
-                    autoComplete="lastName"
-                  />
-                </div>
+                <ValidatedInput
+                  label="First Name"
+                  fieldName="firstName"
+                  type="text"
+                  placeholder="Enter your first name"
+                  required={true}
+                  formValidation={formValidation}
+                  autoComplete="given-name"
+                />
 
-                <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your email"
-                  />
-                </div>
+                <ValidatedInput
+                  label="Last Name"
+                  fieldName="lastName"
+                  type="text"
+                  placeholder="Enter your last name"
+                  required={true}
+                  formValidation={formValidation}
+                  autoComplete="family-name"
+                />
 
-                <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    placeholder="Create a password"
-                    autoComplete="new-password"
-                  />
-                </div>
+                <ValidatedInput
+                  label="Email Address"
+                  fieldName="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  required={true}
+                  formValidation={formValidation}
+                  autoComplete="email"
+                />
+
+                <ValidatedInput
+                  label="Password"
+                  fieldName="password"
+                  type="password"
+                  placeholder="Create a password"
+                  required={true}
+                  formValidation={formValidation}
+                  autoComplete="new-password"
+                />
 
                 <div className="mb-3">
                   <label htmlFor="confirmPassword" className="form-label">
-                    Confirm Password
+                    Confirm Password <span className="text-danger">*</span>
                   </label>
                   <input
                     type="password"
-                    className="form-control"
+                    className={`form-control ${
+                      formValidation.values.confirmPassword &&
+                      formValidation.values.password !==
+                        formValidation.values.confirmPassword
+                        ? "is-invalid"
+                        : ""
+                    }`}
                     id="confirmPassword"
                     name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
+                    value={formValidation.values.confirmPassword}
+                    onChange={formValidation.handleChange}
+                    onBlur={formValidation.handleBlur}
                     required
                     placeholder="Confirm your password"
                     autoComplete="new-password"
                   />
+                  {formValidation.values.confirmPassword &&
+                    formValidation.values.password !==
+                      formValidation.values.confirmPassword && (
+                      <div className="invalid-feedback">
+                        Passwords don't match
+                      </div>
+                    )}
                 </div>
 
                 <div className="mb-3 form-check">

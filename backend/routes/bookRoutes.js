@@ -9,6 +9,7 @@ const {
   createBook,
 } = require("../controllers/bookController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
+const { validateBook } = require("../middleware/validation");
 
 const router = express.Router();
 
@@ -44,8 +45,22 @@ const upload = multer({
 router.get("/", getBooks);
 router.get("/:id", getBookById);
 // Protected routes (admin only)
-router.post("/", protect, adminOnly, upload.single("picture"), createBook);
-router.put("/:id", protect, adminOnly, upload.single("picture"), updateBook);
+router.post(
+  "/",
+  protect,
+  adminOnly,
+  upload.single("picture"),
+  validateBook,
+  createBook
+);
+router.put(
+  "/:id",
+  protect,
+  adminOnly,
+  upload.single("picture"),
+  validateBook,
+  updateBook
+);
 router.delete("/:id", protect, adminOnly, deleteBook);
 
 module.exports = router;
