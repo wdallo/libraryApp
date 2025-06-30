@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
-import BookCard from "../components/BookCard";
+import Card from "../components/Card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLayerGroup, faBook } from "@fortawesome/free-solid-svg-icons";
 
@@ -115,10 +115,7 @@ function CategoryBooks() {
           {books
             .filter((book) => book && typeof book === "object")
             .map((book) => (
-              <BookCard
-                key={book._id || book.id || Math.random()}
-                book={book}
-              />
+              <Card key={book._id || book.id || Math.random()} book={book} />
             ))}
         </div>
       )}

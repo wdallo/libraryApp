@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
-import AuthorCard from "../components/AuthorCard";
+import Card from "../components/Card";
 import Pagination from "../components/Pagination";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
@@ -123,27 +123,41 @@ function Authors() {
         </div>
       </div>
       {/* Authors List */}
-      <div className="row">
-        {authors.length === 0 ? (
-          <div className="col-12 text-center py-5">
-            {" "}
-            <img
-              style={{ marginBottom: "50px" }}
-              src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
-            ></img>
-            <p className="text-muted fs-5 mb-0">No Authors found.</p>
+      {authors.length === 0 ? (
+        <div className="text-center text-muted my-5 no-results-container">
+          <img
+            style={{ marginBottom: "50px" }}
+            src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
+            alt="No data"
+          />
+          <h4>No Authors found.</h4>
+          <p>Check back later or contact the library for more information.</p>
+        </div>
+      ) : (
+        <>
+          {/* Results summary */}
+          <div className="mb-3">
+            <small className="text-muted">
+              Showing {getCurrentPageAuthors().length} of {authors.length}{" "}
+              authors
+            </small>
           </div>
-        ) : (
-          getCurrentPageAuthors().map((author) => (
-            <div
-              className="col-md-4 mb-4"
-              key={author.id || `${author.firstName}-${author.lastName}`}
-            >
-              <AuthorCard author={author} />
-            </div>
-          ))
-        )}
-      </div>
+
+          <div className="books-grid">
+            {getCurrentPageAuthors().map((author) => (
+              <Card
+                key={
+                  author.id ||
+                  author._id ||
+                  `${author.firstName}-${author.lastName}`
+                }
+                author={author}
+                type="author"
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Pagination Component */}
       {authors.length > authorsPerPage && (

@@ -27,9 +27,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
-import BookForm from "./components/BookForm";
-import AuthorForm from "./components/AuthorForm";
-import CategoryForm from "./components/CategoryForm";
+import Form from "./components/Form";
 import {
   setupAxiosInterceptors,
   setNavigateFunction,
@@ -60,7 +58,7 @@ function AppContent() {
           path="/books/new"
           element={
             <AdminProtectedRoute>
-              <BookForm />
+              <Form type="book" />
             </AdminProtectedRoute>
           }
         />
@@ -70,7 +68,7 @@ function AppContent() {
           path="/authors/new"
           element={
             <AdminProtectedRoute>
-              <AuthorForm />
+              <Form type="author" />
             </AdminProtectedRoute>
           }
         />
@@ -81,7 +79,7 @@ function AppContent() {
           path="/categories/new"
           element={
             <AdminProtectedRoute>
-              <CategoryForm />
+              <Form type="category" />
             </AdminProtectedRoute>
           }
         />

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
-import CategoryCard from "../components/CategoryCard";
+import Card from "../components/Card";
 import Pagination from "../components/Pagination";
 
 function Categories() {
@@ -110,26 +110,38 @@ function Categories() {
       </div>
 
       {/* Categories Grid */}
-      <div className="row">
-        {categories.length === 0 ? (
-          <div className="col-12 text-center py-5">
-            <img
-              style={{ marginBottom: "50px" }}
-              src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
-              alt="No categories found"
-            />
-            <p className="text-muted fs-5 mb-0">No Categories found.</p>
+      {categories.length === 0 ? (
+        <div className="text-center text-muted my-5 no-results-container">
+          <img
+            style={{ marginBottom: "50px" }}
+            src={import.meta.env.VITE_API_URL + "/uploads/no_data.png"}
+            alt="No categories found"
+          />
+          <h4>No Categories found.</h4>
+          <p>Check back later or contact the library for more information.</p>
+        </div>
+      ) : (
+        <>
+          {/* Results summary */}
+          <div className="mb-3">
+            <small className="text-muted">
+              Showing {getCurrentPageCategories().length} of {categories.length}{" "}
+              categories
+            </small>
           </div>
-        ) : (
-          getCurrentPageCategories().map((category) => (
-            <CategoryCard
-              key={category._id || category.id || category.name}
-              category={category}
-              bookCount={getBookCount(category)}
-            />
-          ))
-        )}
-      </div>
+
+          <div className="books-grid">
+            {getCurrentPageCategories().map((category) => (
+              <Card
+                key={category._id || category.id || category.name}
+                category={category}
+                bookCount={getBookCount(category)}
+                type="category"
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Pagination Component */}
       {categories.length > categoriesPerPage && (

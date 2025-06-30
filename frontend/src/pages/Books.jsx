@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
-import BookCard from "../components/BookCard";
+import Card from "../components/Card";
 import Pagination from "../components/Pagination";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -24,6 +24,8 @@ function Books() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [pageReady, setPageReady] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [nextPageDirection, setNextPageDirection] = useState("");
   const booksPerPage = 8; // You can adjust this number
 
   useEffect(() => {
@@ -155,15 +157,39 @@ function Books() {
   };
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
-    // Navigate to the new URL with page parameter
-    if (page === 1) {
-      navigate("/books");
-    } else {
-      navigate(`/books/page/${page}`);
-    }
-    // Scroll to top when page changes (optional)
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (page === currentPage) return;
+
+    // Determine animation direction
+    const direction = page > currentPage ? "right" : "left";
+    setNextPageDirection(direction);
+
+    // Start transition
+    setIsTransitioning(true);
+
+    // Short delay for exit animation
+    setTimeout(() => {
+      setCurrentPage(page);
+
+      // Navigate to the new URL with page parameter
+      if (page === 1) {
+        navigate("/books");
+      } else {
+        navigate(`/books/page/${page}`);
+      }
+
+      // End transition after content updates
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setNextPageDirection("");
+      }, 50);
+
+      // Scroll to top when page changes
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 150);
   };
 
   useEffect(() => {
@@ -270,7 +296,7 @@ function Books() {
       </div>
 
       {/* Search and Filter */}
-      <div className="row mb-4">
+      <div className="row mb-4 search-filter-container">
         <div className="col-md-8">
           <div className="input-group">
             <input
@@ -319,7 +345,7 @@ function Books() {
 
       {/* Books Grid */}
       {filteredBooks.length === 0 ? (
-        <div className="text-center text-muted my-5">
+        <div className="text-center text-muted my-5 no-results-container">
           {books.length === 0 ? (
             <>
               <img
@@ -363,10 +389,21 @@ function Books() {
             </small>
           </div>
 
-          <div className="books-grid">
-            {getCurrentPageBooks().map((book) => (
-              <BookCard key={book._id || book.id} book={book} />
-            ))}
+          <div
+            className={`books-grid ${
+              isTransitioning ? "page-transition-exit" : "page-transition-enter"
+            } ${
+              nextPageDirection === "right"
+                ? "slide-in-right"
+                : nextPageDirection === "left"
+                ? "slide-in-left"
+                : ""
+            }`}
+          >
+            {!isTransitioning &&
+              getCurrentPageBooks().map((book) => (
+                <Card key={book._id || book.id} book={book} />
+              ))}
           </div>
         </>
       )}

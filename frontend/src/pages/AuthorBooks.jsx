@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import apiClient from "../utils/apiClient";
 import Loading from "../components/Loading";
-import BookCard from "../components/BookCard";
+import Card from "../components/Card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBook } from "@fortawesome/free-solid-svg-icons";
 
@@ -92,79 +92,86 @@ function AuthorBooks() {
     <div className="container mt-4 bg-white">
       {/* Author Header */}
       <div className="row mb-4">
+        <div className="col-md-4 col-lg-3">
+          <div className="author-image-container sticky-top">
+            <img
+              src={import.meta.env.VITE_API_URL + author.picture}
+              alt={`${author.firstName} ${author.lastName}`}
+              className="author-image"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src =
+                  import.meta.env.VITE_API_URL + "/uploads/notfound.png";
+              }}
+            />
+          </div>
+        </div>
+        <div className="col-md-8 col-lg-9">
+          <div className="author-info">
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb">
+                <li className="breadcrumb-item">
+                  <Link to="/authors" className="text-decoration-none">
+                    Authors
+                  </Link>
+                </li>
+                <li className="breadcrumb-item active" aria-current="page">
+                  {author.firstName} {author.lastName}
+                </li>
+              </ol>
+            </nav>
+            <h1 className="text-black mb-3">
+              {author.firstName} {author.lastName}
+            </h1>
+            <div className="author-details mb-4">
+              <p className="text-muted mb-2">
+                <strong>Born:</strong>{" "}
+                {author.birthday
+                  ? new Date(author.birthday).toLocaleDateString()
+                  : "Unknown"}
+              </p>
+              <p className="text-dark mb-3">
+                {author.bio || "No biography available."}
+              </p>
+              <p className="text-muted">
+                <FontAwesomeIcon icon={faBook} className="me-2" />
+                <strong>{books.length}</strong> book
+                {books.length !== 1 ? "s" : ""} found
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Books Section */}
+      <div className="row">
         <div className="col-12">
-          <nav aria-label="breadcrumb">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item">
-                <Link to="/authors" className="text-decoration-none">
-                  Authors
-                </Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                {author.firstName} {author.lastName}
-              </li>
-            </ol>
-          </nav>
-        </div>
-      </div>
-
-      <div className="row mb-4">
-        <div className="col-md-3 text-center">
-          <img
-            src={import.meta.env.VITE_API_URL + author.picture}
-            alt={`${author.firstName} ${author.lastName}`}
-            className="rounded-circle border border-3 border-dark mb-3"
-            style={{
-              width: "150px",
-              height: "150px",
-              objectFit: "cover",
-            }}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src =
-                import.meta.env.VITE_API_URL + "/uploads/notfound.png";
-            }}
-          />
-        </div>
-        <div className="col-md-9">
-          <h1 className="text-black mb-2">
-            {author.firstName} {author.lastName}
-          </h1>
-          <p className="text-muted mb-2">
-            <strong>Born:</strong>{" "}
-            {author.birthday
-              ? new Date(author.birthday).toLocaleDateString()
-              : "Unknown"}
-          </p>
-          <p className="text-dark">{author.bio || "No biography available."}</p>
-          <p className="text-muted">
-            <strong>{books.length}</strong> book{books.length !== 1 ? "s" : ""}{" "}
-            found
-          </p>
-        </div>
-      </div>
-
-      {/* Books List */}
-      {books.length === 0 ? (
-        <div className="text-center py-5">
-          <FontAwesomeIcon icon={faBook} className="fa-3x text-muted mb-3" />
-          <h4 className="text-muted">No Books Found</h4>
-          <p className="text-muted">
-            This author doesn't have any books in the library yet.
-          </p>
-        </div>
-      ) : (
-        <div className="books-grid">
-          {books
-            .filter((book) => book && typeof book === "object")
-            .map((book) => (
-              <BookCard
-                key={book._id || book.id || Math.random()}
-                book={book}
+          {/* Books List */}
+          {books.length === 0 ? (
+            <div className="text-center py-5">
+              <FontAwesomeIcon
+                icon={faBook}
+                className="fa-3x text-muted mb-3"
               />
-            ))}
+              <h4 className="text-muted">No Books Found</h4>
+              <p className="text-muted">
+                This author doesn't have any books in the library yet.
+              </p>
+            </div>
+          ) : (
+            <div className="books-grid">
+              {books
+                .filter((book) => book && typeof book === "object")
+                .map((book) => (
+                  <Card
+                    key={book._id || book.id || Math.random()}
+                    book={book}
+                  />
+                ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
