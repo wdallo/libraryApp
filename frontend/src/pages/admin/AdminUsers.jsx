@@ -4,6 +4,11 @@ import Loading from "../../components/Loading";
 import Modal from "../../components/Modal";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import useFormValidation from "../../hooks/useFormValidation";
+import {
+  ValidatedInput,
+  ValidatedSelect,
+} from "../../components/ValidationComponents";
 import {
   faBackward,
   faBan,
@@ -19,12 +24,17 @@ function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showBanModal, setShowBanModal] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    role: "user",
-  });
+
+  // User form validation
+  const userFormValidation = useFormValidation(
+    {
+      firstName: "",
+      lastName: "",
+      email: "",
+      role: "user",
+    },
+    "userUpdate"
+  );
 
   useEffect(() => {
     fetchUsers();
@@ -62,7 +72,7 @@ function AdminUsers() {
 
   const handleEditUser = (user) => {
     setSelectedUser(user);
-    setEditFormData({
+    userFormValidation.setMultipleValues({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -70,8 +80,17 @@ function AdminUsers() {
     });
     setShowEditModal(true);
   };
+  const handleUpdateUser = async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
 
-  const handleUpdateUser = async () => {
+    // Validate the form
+    const isValid = await userFormValidation.validate();
+    if (!isValid) {
+      return;
+    }
+
     let user = localStorage.getItem("user") || sessionStorage.getItem("user");
     let token = "";
 
@@ -87,7 +106,7 @@ function AdminUsers() {
     try {
       await apiClient.put(
         `/api/admin/users/${selectedUser._id}`,
-        editFormData,
+        userFormValidation.values,
         {
           headers: {
             authorization: `Bearer ${token}`,
@@ -95,10 +114,23 @@ function AdminUsers() {
         }
       );
       setShowEditModal(false);
+      userFormValidation.reset();
       fetchUsers();
     } catch (error) {
       console.error("Error updating user:", error);
-      alert(error.response?.data?.message || "Failed to update user");
+
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const backendErrors = {};
+        error.response.data.errors.forEach((err) => {
+          if (err.path) {
+            backendErrors[err.path] = [err.msg];
+          }
+        });
+        userFormValidation.setServerErrors(backendErrors);
+      } else {
+        alert(error.response?.data?.message || "Failed to update user");
+      }
     }
   };
 
@@ -286,60 +318,48 @@ function AdminUsers() {
       {/* Edit User Modal */}
       <Modal
         show={showEditModal}
-        onHide={() => setShowEditModal(false)}
+        onHide={() => {
+          setShowEditModal(false);
+          userFormValidation.reset();
+        }}
         title="Edit User"
         type="confirm"
         onConfirm={handleUpdateUser}
         confirmText="Update"
         confirmButtonClass="btn-primary"
+        confirmDisabled={
+          !userFormValidation.isValid || userFormValidation.isSubmitting
+        }
       >
-        <form>
-          <div className="mb-3">
-            <label className="form-label">First Name</label>
-            <input
-              type="text"
-              className="form-control"
-              value={editFormData.firstName}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, firstName: e.target.value })
-              }
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Last Name</label>
-            <input
-              type="text"
-              className="form-control"
-              value={editFormData.lastName}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, lastName: e.target.value })
-              }
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              value={editFormData.email}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, email: e.target.value })
-              }
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Role</label>
-            <select
-              className="form-select"
-              value={editFormData.role}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, role: e.target.value })
-              }
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+        <form onSubmit={handleUpdateUser}>
+          <ValidatedInput
+            label="First Name"
+            fieldName="firstName"
+            formValidation={userFormValidation}
+            placeholder="Enter first name"
+          />
+          <ValidatedInput
+            label="Last Name"
+            fieldName="lastName"
+            formValidation={userFormValidation}
+            placeholder="Enter last name"
+          />
+          <ValidatedInput
+            label="Email"
+            fieldName="email"
+            type="email"
+            formValidation={userFormValidation}
+            placeholder="Enter email address"
+          />
+          <ValidatedSelect
+            label="Role"
+            fieldName="role"
+            formValidation={userFormValidation}
+            options={[
+              { value: "user", label: "User" },
+              { value: "admin", label: "Admin" },
+            ]}
+          />
         </form>
       </Modal>
       {/* Ban User Modal */}

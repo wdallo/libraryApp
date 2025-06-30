@@ -1,16 +1,24 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiClient";
+import useFormValidation from "../hooks/useFormValidation.jsx";
+import { ValidatedInput } from "../components/ValidationComponents.jsx";
+import { getValidationErrorsArray } from "../utils/validation";
 
 function Login() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+
+  // Form validation setup
+  const formValidation = useFormValidation(
+    {
+      email: "",
+      password: "",
+    },
+    "userLogin"
+  );
 
   useEffect(() => {
     const user = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -19,25 +27,28 @@ function Login() {
     }
   }, [navigate]);
 
-  const handleChange = (e) => {
-    if (e.target.name === "rememberMe") {
-      setRememberMe(e.target.checked);
-    } else {
-      setFormData({
-        ...formData,
-        [e.target.name]: e.target.value,
-      });
-    }
+  const handleRememberMeChange = (e) => {
+    setRememberMe(e.target.checked);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = formValidation.handleSubmit(async (values) => {
     setError("");
     setLoading(true);
+
+    // Debug logging
+    console.log("Frontend Login - Form values:", values);
+    console.log("Frontend Login - Form validation state:", {
+      isValid: formValidation.isValid,
+      errors: formValidation.errors,
+      touched: formValidation.touched,
+    });
+
     try {
-      const response = await apiClient.post("/api/users/login", formData);
-      // Save user to sessionStorage or localStorage based on rememberMe
+      console.log("Frontend Login - Sending data to API:", values);
+      const response = await apiClient.post("/api/users/login", values);
       const userData = response.data;
+      console.log("Login success:", userData);
+
       if (rememberMe) {
         localStorage.setItem("user", JSON.stringify(userData));
       } else {
@@ -45,13 +56,16 @@ function Login() {
       }
       navigate("/");
     } catch (err) {
+      console.error("Login error:", err);
+      console.error("Login error response:", err.response?.data);
+
       setError(
         err.response?.data?.message || "Login failed. Please try again."
       );
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   return (
     <div className="container mt-5">
@@ -67,39 +81,23 @@ function Login() {
                 <div className="alert alert-danger text-center">{error}</div>
               )}
               <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="email" className="form-label">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your email"
-                    autoComplete="email"
-                  />
-                </div>
+                <ValidatedInput
+                  label="Email Address"
+                  fieldName="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  required={true}
+                  formValidation={formValidation}
+                />
 
-                <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your password"
-                    autoComplete="current-password"
-                  />
-                </div>
+                <ValidatedInput
+                  label="Password"
+                  fieldName="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  required={true}
+                  formValidation={formValidation}
+                />
 
                 <div className="mb-3 form-check">
                   <input
@@ -108,7 +106,7 @@ function Login() {
                     id="rememberMe"
                     name="rememberMe"
                     checked={rememberMe}
-                    onChange={handleChange}
+                    onChange={handleRememberMeChange}
                   />
                   <label className="form-check-label" htmlFor="rememberMe">
                     Remember me
@@ -116,8 +114,14 @@ function Login() {
                 </div>
 
                 <div className="d-grid">
-                  <button type="submit" className="btn btn-dark">
-                    Sign In
+                  <button
+                    type="submit"
+                    className="btn btn-dark"
+                    disabled={loading || formValidation.isSubmitting}
+                  >
+                    {loading || formValidation.isSubmitting
+                      ? "Signing In..."
+                      : "Sign In"}
                   </button>
                 </div>
               </form>

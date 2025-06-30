@@ -4,6 +4,11 @@ import Loading from "../../components/Loading";
 import Modal from "../../components/Modal";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import useFormValidation from "../../hooks/useFormValidation";
+import {
+  ValidatedInput,
+  ValidatedTextarea,
+} from "../../components/ValidationComponents";
 import {
   faBackward,
   faMagnifyingGlass,
@@ -19,13 +24,17 @@ function AdminAuthors() {
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    birthday: "",
-    bio: "",
-    picture: null,
-  });
+
+  // Author form validation
+  const authorFormValidation = useFormValidation(
+    {
+      firstName: "",
+      lastName: "",
+      birthday: "",
+      bio: "",
+    },
+    "author"
+  );
 
   useEffect(() => {
     fetchAuthors();
@@ -44,12 +53,11 @@ function AdminAuthors() {
 
   const handleEditAuthor = (author) => {
     setSelectedAuthor(author);
-    setFormData({
+    authorFormValidation.setMultipleValues({
       firstName: author.firstName,
       lastName: author.lastName,
       birthday: author.birthday ? author.birthday.split("T")[0] : "",
       bio: author.bio || "",
-      picture: null,
     });
     setShowEditModal(true);
   };
@@ -59,7 +67,17 @@ function AdminAuthors() {
     setShowDeleteModal(true);
   };
 
-  const submitEditAuthor = async () => {
+  const submitEditAuthor = async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+
+    // Validate the form
+    const isValid = await authorFormValidation.validate();
+    if (!isValid) {
+      return;
+    }
+
     let user = localStorage.getItem("user") || sessionStorage.getItem("user");
     let token = "";
 
@@ -74,12 +92,12 @@ function AdminAuthors() {
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("firstName", formData.firstName);
-      formDataToSend.append("lastName", formData.lastName);
-      if (formData.birthday)
-        formDataToSend.append("birthday", formData.birthday);
-      if (formData.bio) formDataToSend.append("bio", formData.bio);
-      if (formData.picture) formDataToSend.append("picture", formData.picture);
+      formDataToSend.append("firstName", authorFormValidation.values.firstName);
+      formDataToSend.append("lastName", authorFormValidation.values.lastName);
+      if (authorFormValidation.values.birthday)
+        formDataToSend.append("birthday", authorFormValidation.values.birthday);
+      if (authorFormValidation.values.bio)
+        formDataToSend.append("bio", authorFormValidation.values.bio);
 
       await apiClient.put(
         `/api/authors/${selectedAuthor._id}`,
@@ -92,10 +110,23 @@ function AdminAuthors() {
         }
       );
       setShowEditModal(false);
+      authorFormValidation.reset();
       fetchAuthors();
     } catch (error) {
       console.error("Error updating author:", error);
-      alert(error.response?.data?.message || "Failed to update author");
+
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const backendErrors = {};
+        error.response.data.errors.forEach((err) => {
+          if (err.path) {
+            backendErrors[err.path] = [err.msg];
+          }
+        });
+        authorFormValidation.setServerErrors(backendErrors);
+      } else {
+        alert(error.response?.data?.message || "Failed to update author");
+      }
     }
   };
 
@@ -267,81 +298,53 @@ function AdminAuthors() {
       {/* Edit Author Modal */}
       <Modal
         show={showEditModal}
-        onHide={() => setShowEditModal(false)}
+        onHide={() => {
+          setShowEditModal(false);
+          authorFormValidation.reset();
+        }}
         title="Edit Author"
         type="confirm"
         onConfirm={submitEditAuthor}
         confirmText="Update"
         confirmButtonClass="btn-primary"
+        confirmDisabled={
+          !authorFormValidation.isValid || authorFormValidation.isSubmitting
+        }
       >
-        <form>
+        <form onSubmit={submitEditAuthor}>
           <div className="row">
-            <div className="col-md-6 mb-3">
-              <label className="form-label">First Name *</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
+            <div className="col-md-6">
+              <ValidatedInput
+                label="First Name"
+                fieldName="firstName"
+                required={true}
+                formValidation={authorFormValidation}
                 placeholder="Enter first name"
-                required
               />
             </div>
-            <div className="col-md-6 mb-3">
-              <label className="form-label">Last Name *</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
+            <div className="col-md-6">
+              <ValidatedInput
+                label="Last Name"
+                fieldName="lastName"
+                required={true}
+                formValidation={authorFormValidation}
                 placeholder="Enter last name"
-                required
               />
             </div>
           </div>
-          <div className="mb-3">
-            <label className="form-label">Birthday</label>
-            <input
-              type="date"
-              className="form-control"
-              value={formData.birthday}
-              onChange={(e) =>
-                setFormData({ ...formData, birthday: e.target.value })
-              }
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Picture</label>
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*"
-              onChange={(e) =>
-                setFormData({ ...formData, picture: e.target.files[0] })
-              }
-            />
-            {selectedAuthor?.picture && (
-              <small className="text-muted">
-                Current: {selectedAuthor.picture}
-              </small>
-            )}
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Biography</label>
-            <textarea
-              className="form-control"
-              rows="4"
-              value={formData.bio}
-              onChange={(e) =>
-                setFormData({ ...formData, bio: e.target.value })
-              }
-              placeholder="Enter author biography (optional)"
-            />
-          </div>
+          <ValidatedInput
+            label="Birthday"
+            fieldName="birthday"
+            type="date"
+            formValidation={authorFormValidation}
+          />
+          <ValidatedTextarea
+            label="Biography"
+            fieldName="bio"
+            formValidation={authorFormValidation}
+            rows={4}
+            placeholder="Enter author biography (optional)"
+          />
         </form>
       </Modal>
 

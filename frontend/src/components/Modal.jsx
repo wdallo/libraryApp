@@ -10,6 +10,7 @@ function Modal({
   confirmText = "Confirm",
   cancelText = "Cancel",
   confirmButtonClass = "btn-primary",
+  confirmDisabled = false,
   size = "modal-dialog-centered",
 }) {
   // Handle escape key press
@@ -35,8 +36,9 @@ function Modal({
   const handleConfirm = () => {
     if (type === "confirm" && onConfirm) {
       onConfirm();
+    } else {
+      onHide();
     }
-    onHide();
   };
 
   const handleBackdropClick = (e) => {
@@ -82,6 +84,7 @@ function Modal({
                   type="button"
                   className={`btn ${confirmButtonClass}`}
                   onClick={handleConfirm}
+                  disabled={confirmDisabled}
                 >
                   {confirmText}
                 </button>

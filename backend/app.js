@@ -143,6 +143,17 @@ app.get("/api/test-rate-limit", limiter, (req, res) => {
   });
 });
 
+// Test endpoint for data flow debugging
+app.post("/api/test-data", (req, res) => {
+  console.log("Test endpoint - Headers:", req.headers);
+  console.log("Test endpoint - Body:", req.body);
+  res.json({
+    message: "Data received successfully",
+    receivedData: req.body,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Routes
 app.use("/api/authors", authorRoutes);
 app.use("/api/books", bookRoutes);
