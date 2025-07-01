@@ -28,8 +28,9 @@ function Authors() {
 
   useEffect(() => {
     setLoading(true);
+    // Request all authors by setting a high limit
     apiClient
-      .get(import.meta.env.VITE_API_URL + "/api/authors")
+      .get(import.meta.env.VITE_API_URL + "/api/authors?limit=1000")
       .then((res) => {
         console.log("Authors API response:", res.data);
         // Support both array and { authors: [...] } structure

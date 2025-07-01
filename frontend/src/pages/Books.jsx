@@ -12,6 +12,7 @@ function Books() {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [userReservations, setUserReservations] = useState([]);
@@ -92,6 +93,18 @@ function Books() {
       setPageReady(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await apiClient.get(
+        `${import.meta.env.VITE_API_URL}/api/categories`
+      );
+      setCategories(res.data || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories([]);
     }
   };
 
@@ -242,7 +255,7 @@ function Books() {
   // Mark initial load as complete once books are loaded and page is ready
   useEffect(() => {
     if (isInitialLoad) {
-      fetchBooks().then(() => {
+      Promise.all([fetchBooks(), fetchCategories()]).then(() => {
         setIsInitialLoad(false);
       });
     }
@@ -304,25 +317,9 @@ function Books() {
             onChange={handleCategoryChange}
           >
             <option value="">All Categories</option>
-            {Array.from(
-              new Set(
-                books.flatMap((book) => {
-                  if (book.category) {
-                    // Handle both string and object categories
-                    if (typeof book.category === "string") {
-                      return [book.category];
-                    } else if (Array.isArray(book.category)) {
-                      return book.category.map((cat) => cat.name || cat);
-                    } else if (book.category.name) {
-                      return [book.category.name];
-                    }
-                  }
-                  return [];
-                })
-              )
-            ).map((categoryName) => (
-              <option key={categoryName} value={categoryName}>
-                {categoryName}
+            {categories.map((category) => (
+              <option key={category._id} value={category.name}>
+                {category.name} ({category.bookCount || 0})
               </option>
             ))}
           </select>
