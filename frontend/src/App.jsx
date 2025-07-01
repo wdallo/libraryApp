@@ -96,6 +96,14 @@ function AppContent() {
           }
         />
         <Route
+          path="/my-reservations/page/:pageNumber"
+          element={
+            <UserProtectedRoute>
+              <MyReservations />
+            </UserProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/dashboard"
           element={
             <AdminProtectedRoute>

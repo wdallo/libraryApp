@@ -300,6 +300,7 @@ function Books() {
         <div className="col-md-8">
           <div className="input-group">
             <input
+              name="search"
               type="text"
               className="form-control border-dark"
               placeholder="Search books by title or author..."
@@ -313,6 +314,7 @@ function Books() {
         </div>
         <div className="col-md-4">
           <select
+            name="category"
             className="form-select border-dark"
             value={selectedCategory}
             onChange={handleCategoryChange}
