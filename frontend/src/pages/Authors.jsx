@@ -19,6 +19,7 @@ function Authors() {
     return page && page > 0 ? page : 1;
   });
   const [totalPages, setTotalPages] = useState(1);
+  const [totalAuthors, setTotalAuthors] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [pageReady, setPageReady] = useState(false);
@@ -27,63 +28,69 @@ function Authors() {
   const authorsPerPage = 8; // You can adjust this number
 
   useEffect(() => {
-    setLoading(true);
-    apiClient
-      .get(import.meta.env.VITE_API_URL + "/api/authors")
-      .then((res) => {
-        console.log("Authors API response:", res.data);
-        // Support both array and { authors: [...] } structure
-        if (Array.isArray(res.data)) {
-          setAuthors(res.data);
-          setFilteredAuthors(res.data);
-          setTotalPages(Math.ceil(res.data.length / authorsPerPage));
-        } else if (res.data && Array.isArray(res.data.authors)) {
-          setAuthors(res.data.authors);
-          setFilteredAuthors(res.data.authors);
-          setTotalPages(Math.ceil(res.data.authors.length / authorsPerPage));
-        } else {
-          setAuthors([]);
-          setFilteredAuthors([]);
-          setTotalPages(1);
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching authors:", error);
-        setAuthors([]);
-        setFilteredAuthors([]);
-        setLoading(false);
-      });
-  }, []);
+    if (!isInitialLoad) {
+      fetchAuthors();
+    }
+  }, [currentPage]);
 
-  // Filter authors based on search term
+  // Debounce search to avoid too many API calls
   useEffect(() => {
-    let filtered = authors;
+    const delayedSearch = setTimeout(() => {
+      if (searchTerm !== undefined && !isInitialLoad) {
+        // Reset to page 1 when searching
+        if (currentPage !== 1) {
+          navigate("/authors");
+        } else {
+          fetchAuthors();
+        }
+      }
+    }, 500);
 
-    // Apply search filter
-    if (searchTerm.trim()) {
-      filtered = filtered.filter((author) => {
-        const fullName = `${author.firstName || ""} ${
-          author.lastName || ""
-        }`.trim();
-        return fullName.toLowerCase().includes(searchTerm.toLowerCase());
+    return () => clearTimeout(delayedSearch);
+  }, [searchTerm]);
+
+  const fetchAuthors = async () => {
+    setLoading(true);
+
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: authorsPerPage.toString(),
       });
-    }
 
-    setFilteredAuthors(filtered);
-    setTotalPages(Math.ceil(filtered.length / authorsPerPage));
+      if (searchTerm.trim()) {
+        params.append("search", searchTerm);
+      }
 
-    // Mark page as ready to render only after initial filtering is complete
-    if (!pageReady) {
+      const apiUrl = `${
+        import.meta.env.VITE_API_URL
+      }/api/authors?${params.toString()}`;
+
+      const res = await apiClient.get(apiUrl);
+
+      const data = res.data;
+      const authorsData = data.authors || [];
+
+      setAuthors(authorsData);
+      setFilteredAuthors(authorsData);
+      setTotalPages(data.totalPages || 1);
+      setTotalAuthors(data.totalAuthors || 0);
       setPageReady(true);
+    } catch (error) {
+      console.error("Authors.jsx - Error fetching authors:", error);
+      setAuthors([]);
+      setFilteredAuthors([]);
+      setTotalPages(1);
+      setTotalAuthors(0);
+      setPageReady(true);
+    } finally {
+      setLoading(false);
     }
-  }, [authors, searchTerm, authorsPerPage, pageReady]);
+  };
 
-  // Calculate authors to display for current page
+  // Calculate authors to display for current page (already filtered by server)
   const getCurrentPageAuthors = () => {
-    const startIndex = (currentPage - 1) * authorsPerPage;
-    const endIndex = startIndex + authorsPerPage;
-    return filteredAuthors.slice(startIndex, endIndex);
+    return filteredAuthors;
   };
 
   const handlePageChange = (page) => {
@@ -156,13 +163,9 @@ function Authors() {
 
   // Handler for search changes
   const handleSearchChange = (e) => {
-    console.log(
-      `handleSearchChange: isInitialLoad=${isInitialLoad}, searchTerm changing from "${searchTerm}" to "${e.target.value}"`
-    );
     setSearchTerm(e.target.value);
     // Only reset page and navigate if not during initial load
     if (!isInitialLoad) {
-      console.log("handleSearchChange: Resetting to page 1");
       setCurrentPage(1);
       navigate("/authors");
     }
@@ -170,16 +173,12 @@ function Authors() {
 
   // Mark initial load as complete once authors are loaded and page is ready
   useEffect(() => {
-    if (!loading && pageReady && isInitialLoad) {
-      console.log("Marking initial load as complete");
-      // Longer delay to ensure all initial effects have run and URL is processed
-      const timer = setTimeout(() => {
+    if (isInitialLoad) {
+      fetchAuthors().then(() => {
         setIsInitialLoad(false);
-        console.log("Initial load marked as complete");
-      }, 300);
-      return () => clearTimeout(timer);
+      });
     }
-  }, [loading, pageReady, isInitialLoad]);
+  }, []);
 
   if (loading || !pageReady) {
     return <Loading />;
@@ -216,7 +215,7 @@ function Authors() {
       {/* Authors List */}
       {filteredAuthors.length === 0 ? (
         <div className="text-center text-muted my-5 no-results-container">
-          {authors.length === 0 ? (
+          {totalAuthors === 0 ? (
             <>
               <img
                 style={{ marginBottom: "50px" }}
@@ -250,8 +249,8 @@ function Authors() {
           {/* Results summary */}
           <div className="mb-3">
             <small className="text-muted">
-              Showing {getCurrentPageAuthors().length} of {authors.length}{" "}
-              authors
+              Showing {getCurrentPageAuthors().length} of {totalAuthors} authors
+              {searchTerm && <span> (filtered results)</span>}
             </small>
           </div>
 
@@ -283,7 +282,7 @@ function Authors() {
       )}
 
       {/* Pagination Component */}
-      {authors.length > authorsPerPage && (
+      {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -291,12 +290,6 @@ function Authors() {
           className="mt-4"
         />
       )}
-
-      <div className="text-center mt-4">
-        <p className="text-muted">
-          Showing {getCurrentPageAuthors().length} of {authors.length} authors
-        </p>
-      </div>
     </div>
   );
 }
