@@ -43,6 +43,9 @@ const FORM_CONFIGS = {
     fileLabel: "Author Image",
     fileAccept: "image/*",
     fileHelpText: "Upload an image for the author (optional)",
+    adminOnly: true,
+    requiresAuth: true,
+    redirectAfterSuccess: "/authors",
     fields: [
       {
         name: "firstName",
@@ -329,10 +332,23 @@ function Form({ type = "category" }) {
         // Use FormData for file uploads
         data = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
-          data.append(key, value);
+          if (value !== null && value !== undefined && value !== "") {
+            data.append(key, value);
+          }
         });
         data.append(config.fileFieldName, file);
-        headers["Content-Type"] = "multipart/form-data";
+        // Don't set Content-Type for FormData, let browser set it
+        delete headers["Content-Type"];
+      } else if (config.hasFileUpload && !file) {
+        // Handle form with file upload capability but no file selected
+        data = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== "") {
+            data.append(key, value);
+          }
+        });
+        // Don't set Content-Type for FormData, let browser set it
+        delete headers["Content-Type"];
       } else {
         // Use JSON for simple forms
         data = formData;
@@ -388,6 +404,27 @@ function Form({ type = "category" }) {
       defaultValue,
     } = field;
 
+    // Define autocomplete values based on field names
+    const getAutocomplete = (fieldName) => {
+      const autocompleteMap = {
+        firstName: "given-name",
+        lastName: "family-name",
+        name: "name",
+        title: "off",
+        author: "off",
+        category: "off",
+        description: "off",
+        bio: "off",
+        birthday: "bday",
+        publishedDate: "off",
+        pages: "off",
+        language: "language",
+        totalQuantity: "off",
+        availableQuantity: "off",
+      };
+      return autocompleteMap[fieldName] || "off";
+    };
+
     const commonProps = {
       id: name,
       name,
@@ -395,6 +432,7 @@ function Form({ type = "category" }) {
       onChange: handleChange,
       required,
       className: "form-control",
+      autoComplete: getAutocomplete(name),
     };
 
     const fieldWrapper = (content, key) => (
@@ -499,6 +537,7 @@ function Form({ type = "category" }) {
           name={config.fileFieldName}
           accept={config.fileAccept}
           onChange={handleChange}
+          autoComplete="off"
         />
         <div className="form-text">{config.fileHelpText}</div>
         {file && (

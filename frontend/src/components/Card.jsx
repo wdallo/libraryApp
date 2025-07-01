@@ -26,9 +26,13 @@ function Card({
   type = "book",
   onExtend,
   onReturn,
+  reservationStatus: passedReservationStatus = undefined,
+  onReservationUpdate = null,
 }) {
   const [isReserving, setIsReserving] = useState(false);
-  const [reservationStatus, setReservationStatus] = useState(null); // null, "pending", "active"
+  const [reservationStatus, setReservationStatus] = useState(
+    passedReservationStatus
+  ); // null, "pending", "active"
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
@@ -49,7 +53,8 @@ function Card({
       : book;
 
   useEffect(() => {
-    if (type === "book" && item?._id) {
+    // Only fetch reservation status if not provided by parent component
+    if (type === "book" && item?._id && passedReservationStatus === undefined) {
       const user =
         localStorage.getItem("user") || sessionStorage.getItem("user");
       if (user) {
@@ -63,9 +68,12 @@ function Card({
           }
         } catch {}
       }
+    } else if (passedReservationStatus !== undefined) {
+      // Use the passed reservation status (can be null if no reservation exists)
+      setReservationStatus(passedReservationStatus);
     }
     // eslint-disable-next-line
-  }, [item?._id, type]);
+  }, [item?._id, type, passedReservationStatus]);
 
   const showAlert = (title, message) => {
     setModalConfig({
@@ -164,6 +172,12 @@ function Card({
             }
           );
           setReservationStatus("pending");
+
+          // Update parent component's reservations list
+          if (onReservationUpdate) {
+            onReservationUpdate();
+          }
+
           showAlert(
             "Success",
             "Book reservation submitted! Waiting for admin approval."

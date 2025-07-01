@@ -32,7 +32,7 @@ function Categories() {
       .get(import.meta.env.VITE_API_URL + "/api/categories")
       .then((res) => {
         console.log("Categories API response:", res.data);
-        // Support both array and { categories: [...] }
+        // Support both array and { categories: [...] } structure
         if (Array.isArray(res.data)) {
           setCategories(res.data);
           setFilteredCategories(res.data);
@@ -50,7 +50,8 @@ function Categories() {
         }
         setLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
         setCategories([]);
         setFilteredCategories([]);
         setLoading(false);

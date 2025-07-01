@@ -32,7 +32,7 @@ function Authors() {
       .get(import.meta.env.VITE_API_URL + "/api/authors")
       .then((res) => {
         console.log("Authors API response:", res.data);
-        // Support both array and { authors: [...] }
+        // Support both array and { authors: [...] } structure
         if (Array.isArray(res.data)) {
           setAuthors(res.data);
           setFilteredAuthors(res.data);
@@ -48,7 +48,8 @@ function Authors() {
         }
         setLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Error fetching authors:", error);
         setAuthors([]);
         setFilteredAuthors([]);
         setLoading(false);

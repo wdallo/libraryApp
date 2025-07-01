@@ -225,6 +225,7 @@ function AdminUsers() {
         <div className="col-md-9">
           <div className="input-group">
             <input
+              name="search"
               type="text"
               className="form-control"
               placeholder="Search users by name or email..."

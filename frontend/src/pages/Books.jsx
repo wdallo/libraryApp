@@ -14,12 +14,15 @@ function Books() {
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [userReservations, setUserReservations] = useState([]);
+  const [reservationsLoaded, setReservationsLoaded] = useState(false);
   const [currentPage, setCurrentPage] = useState(() => {
     // Initialize currentPage from URL parameter
     const page = parseInt(pageNumber, 10);
     return page && page > 0 ? page : 1;
   });
   const [totalPages, setTotalPages] = useState(1);
+  const [totalBooks, setTotalBooks] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -29,131 +32,124 @@ function Books() {
   const booksPerPage = 8; // You can adjust this number
 
   useEffect(() => {
-    setLoading(true);
-    const apiUrl = import.meta.env.VITE_API_URL + "/api/books";
+    if (!isInitialLoad) {
+      fetchBooks();
+    }
+  }, [currentPage, selectedCategory]);
 
-    apiClient
-      .get(apiUrl)
-      .then((res) => {
-        console.log(
-          "Books.jsx - Is response data an array?",
-          Array.isArray(res.data)
-        );
-
-        // Support both array and { books: [...] } structure
-        if (Array.isArray(res.data)) {
-          console.log(
-            "Books.jsx - Setting books from direct array, length:",
-            res.data.length
-          );
-          // Log first book structure if available
-          if (res.data.length > 0) {
-            console.log("Books.jsx - First book structure:", res.data[0]);
-          }
-          setBooks(res.data);
-          setFilteredBooks(res.data);
-          setTotalPages(Math.ceil(res.data.length / booksPerPage));
-        } else if (res.data && Array.isArray(res.data.books)) {
-          console.log(
-            "Books.jsx - Setting books from .books property, length:",
-            res.data.books.length
-          );
-          // Log first book structure if available
-          if (res.data.books.length > 0) {
-            console.log("Books.jsx - First book structure:", res.data.books[0]);
-          }
-          setBooks(res.data.books);
-          setFilteredBooks(res.data.books);
-          setTotalPages(Math.ceil(res.data.books.length / booksPerPage));
-        } else {
-          console.log(
-            "Books.jsx - No valid books array found, setting empty array"
-          );
-          setBooks([]);
-          setTotalPages(1);
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Books.jsx - Error fetching books:", error);
-        console.error("Books.jsx - Error status:", error.response?.status);
-        console.error("Books.jsx - Error response data:", error.response?.data);
-        console.error("Books.jsx - Error message:", error.message);
-
-        // If 404, it means no books found, which is fine
-        if (error.response?.status === 404) {
-          console.log("Books.jsx - 404 response, setting empty books array");
-          setBooks([]);
-        } else {
-          console.log("Books.jsx - Other error, setting empty books array");
-          setBooks([]);
-        }
-        setLoading(false);
-      });
-  }, []);
-
-  // Filter books based on search term and category
+  // Debounce search to avoid too many API calls
   useEffect(() => {
-    let filtered = books;
-
-    // Apply search filter
-    if (searchTerm.trim()) {
-      filtered = filtered.filter((book) => {
-        const titleMatch = book.title
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase());
-
-        // Handle author search for both object and string types
-        let authorMatch = false;
-        if (book.author && typeof book.author === "object") {
-          const authorName = `${book.author.firstName || ""} ${
-            book.author.lastName || ""
-          }`.trim();
-          authorMatch = authorName
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
-        } else if (typeof book.author === "string") {
-          authorMatch = book.author
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
+    const delayedSearch = setTimeout(() => {
+      if (searchTerm !== undefined && !isInitialLoad) {
+        // Reset to page 1 when searching
+        if (currentPage !== 1) {
+          navigate("/books");
+        } else {
+          fetchBooks();
         }
+      }
+    }, 500);
 
-        return titleMatch || authorMatch;
+    return () => clearTimeout(delayedSearch);
+  }, [searchTerm]);
+
+  const fetchBooks = async () => {
+    setLoading(true);
+
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: booksPerPage.toString(),
       });
-    }
 
-    // Apply category filter
-    if (selectedCategory.trim()) {
-      filtered = filtered.filter((book) => {
-        if (book.category) {
-          if (typeof book.category === "string") {
-            return book.category === selectedCategory;
-          } else if (Array.isArray(book.category)) {
-            return book.category.some(
-              (cat) => (cat.name || cat) === selectedCategory
-            );
-          } else if (book.category.name) {
-            return book.category.name === selectedCategory;
-          }
-        }
-        return false;
-      });
-    }
+      if (searchTerm.trim()) {
+        params.append("search", searchTerm);
+      }
+      if (selectedCategory.trim()) {
+        params.append("category", selectedCategory);
+      }
 
-    setFilteredBooks(filtered);
-    setTotalPages(Math.ceil(filtered.length / booksPerPage));
+      const apiUrl = `${
+        import.meta.env.VITE_API_URL
+      }/api/books?${params.toString()}`;
 
-    // Mark page as ready to render only after initial filtering is complete
-    if (!pageReady) {
+      const res = await apiClient.get(apiUrl);
+
+      const data = res.data;
+      const booksData = data.books || [];
+
+      setBooks(booksData);
+      setFilteredBooks(booksData);
+      setTotalPages(data.totalPages || 1);
+      setTotalBooks(data.totalBooks || 0);
       setPageReady(true);
+    } catch (error) {
+      console.error("Books.jsx - Error fetching books:", error);
+      setBooks([]);
+      setFilteredBooks([]);
+      setTotalPages(1);
+      setTotalBooks(0);
+      setPageReady(true);
+    } finally {
+      setLoading(false);
     }
-  }, [books, searchTerm, selectedCategory, booksPerPage, pageReady]);
+  };
 
-  // Calculate books to display for current page
+  // Fetch user reservations when user state is available
+  useEffect(() => {
+    if (user) {
+      fetchUserReservations();
+    } else {
+      // If no user, mark reservations as "loaded" with empty array
+      setReservationsLoaded(true);
+    }
+  }, [user]);
+
+  const fetchUserReservations = async () => {
+    const storedUser =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (!storedUser) {
+      setReservationsLoaded(true);
+      return;
+    }
+
+    try {
+      const userData = JSON.parse(storedUser);
+      const token =
+        userData.token || userData.accessToken || userData.jwt || "";
+      if (!token) {
+        setReservationsLoaded(true);
+        return;
+      }
+
+      const response = await apiClient.get(`/api/reservations`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUserReservations(response.data.reservations || []);
+      setReservationsLoaded(true);
+    } catch (error) {
+      console.error("Error fetching user reservations:", error);
+      setUserReservations([]);
+      setReservationsLoaded(true);
+    }
+  };
+
+  // Helper function to get reservation status for a book
+  const getBookReservationStatus = (bookId) => {
+    const reservation = userReservations.find(
+      (res) =>
+        res.book?._id === bookId &&
+        (res.status === "active" || res.status === "pending")
+    );
+    return reservation ? reservation.status : null;
+  };
+
+  // Calculate books to display for current page (already filtered by server)
   const getCurrentPageBooks = () => {
-    const startIndex = (currentPage - 1) * booksPerPage;
-    const endIndex = startIndex + booksPerPage;
-    return filteredBooks.slice(startIndex, endIndex);
+    return filteredBooks;
   };
 
   const handlePageChange = (page) => {
@@ -226,26 +222,18 @@ function Books() {
 
   // Handler functions for filter changes
   const handleSearchChange = (e) => {
-    console.log(
-      `handleSearchChange: isInitialLoad=${isInitialLoad}, searchTerm changing from "${searchTerm}" to "${e.target.value}"`
-    );
     setSearchTerm(e.target.value);
     // Only reset page and navigate if not during initial load
     if (!isInitialLoad) {
-      console.log("handleSearchChange: Resetting to page 1");
       setCurrentPage(1);
       navigate("/books");
     }
   };
 
   const handleCategoryChange = (e) => {
-    console.log(
-      `handleCategoryChange: isInitialLoad=${isInitialLoad}, category changing from "${selectedCategory}" to "${e.target.value}"`
-    );
     setSelectedCategory(e.target.value);
     // Only reset page and navigate if not during initial load
     if (!isInitialLoad) {
-      console.log("handleCategoryChange: Resetting to page 1");
       setCurrentPage(1);
       navigate("/books");
     }
@@ -253,16 +241,12 @@ function Books() {
 
   // Mark initial load as complete once books are loaded and page is ready
   useEffect(() => {
-    if (!loading && pageReady && isInitialLoad) {
-      console.log("Marking initial load as complete");
-      // Longer delay to ensure all initial effects have run and URL is processed
-      const timer = setTimeout(() => {
+    if (isInitialLoad) {
+      fetchBooks().then(() => {
         setIsInitialLoad(false);
-        console.log("Initial load marked as complete");
-      }, 300);
-      return () => clearTimeout(timer);
+      });
     }
-  }, [loading, pageReady, isInitialLoad]);
+  }, []);
 
   if (loading || !pageReady) {
     return <Loading />;
@@ -348,7 +332,7 @@ function Books() {
       {/* Books Grid */}
       {filteredBooks.length === 0 ? (
         <div className="text-center text-muted my-5 no-results-container">
-          {books.length === 0 ? (
+          {totalBooks === 0 ? (
             <>
               <img
                 style={{ marginBottom: "50px" }}
@@ -383,10 +367,9 @@ function Books() {
           {/* Results summary */}
           <div className="mb-3">
             <small className="text-muted">
-              Showing {getCurrentPageBooks().length} of {filteredBooks.length}{" "}
-              books
+              Showing {getCurrentPageBooks().length} of {totalBooks} books
               {(searchTerm || selectedCategory) && (
-                <span> (filtered from {books.length} total)</span>
+                <span> (filtered results)</span>
               )}
             </small>
           </div>
@@ -404,14 +387,23 @@ function Books() {
           >
             {!isTransitioning &&
               getCurrentPageBooks().map((book) => (
-                <Card key={book._id || book.id} book={book} />
+                <Card
+                  key={book._id || book.id}
+                  book={book}
+                  reservationStatus={
+                    reservationsLoaded
+                      ? getBookReservationStatus(book._id || book.id)
+                      : undefined
+                  }
+                  onReservationUpdate={fetchUserReservations}
+                />
               ))}
           </div>
         </>
       )}
 
       {/* Pagination Component */}
-      {filteredBooks.length > booksPerPage && (
+      {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
