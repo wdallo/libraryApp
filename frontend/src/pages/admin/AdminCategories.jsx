@@ -180,6 +180,7 @@ function AdminCategories() {
         <div className="col-md-6">
           <div className="input-group">
             <input
+              name="search"
               type="text"
               className="form-control"
               placeholder="Search categories by name or description..."

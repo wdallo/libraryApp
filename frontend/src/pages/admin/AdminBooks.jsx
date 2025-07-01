@@ -316,6 +316,7 @@ function AdminBooks() {
         <div className="col-md-6">
           <div className="input-group">
             <input
+              name="search"
               type="text"
               className="form-control"
               placeholder="Search books by title or author..."
@@ -329,6 +330,7 @@ function AdminBooks() {
         </div>
         <div className="col-md-3">
           <select
+            name="category"
             className="form-select"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}

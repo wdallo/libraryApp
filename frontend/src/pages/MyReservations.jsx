@@ -54,7 +54,9 @@ function MyReservations() {
           authorization: `Bearer ${token}`,
         },
       });
-      const reservationsData = response.data.reservations || [];
+
+      const data = response.data;
+      const reservationsData = data.reservations || [];
       setReservations(reservationsData);
       setFilteredReservations(reservationsData);
       setTotalPages(Math.ceil(reservationsData.length / reservationsPerPage));

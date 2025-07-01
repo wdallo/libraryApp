@@ -8,9 +8,19 @@ const path = require("path");
 
 const getBooks = asyncHandler(async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    console.log("getBooks - Raw query params:", {
+      page: req.query.page,
+      limit: req.query.limit,
+    });
+    console.log("getBooks - Parsed params:", { page, limit });
+
+    // Allow pagination with just limit (default to page 1) or both page and limit
+    const usePagination = !isNaN(limit) && limit > 0;
+    const currentPage = !isNaN(page) && page > 0 ? page : 1;
+    const skip = usePagination ? (currentPage - 1) * limit : 0;
 
     // Build query
     let query = {};
@@ -39,29 +49,68 @@ const getBooks = asyncHandler(async (req, res) => {
     }
 
     console.log("getBooks - MongoDB query:", query);
+    console.log("getBooks - Using pagination:", usePagination);
+    console.log("getBooks - Current page:", currentPage);
+
+    // Handle sorting
+    let sortOption = { createdAt: -1 }; // Default: newest first
+    if (req.query.sort === "recent") {
+      sortOption = { createdAt: -1 };
+    } else if (req.query.sort === "oldest") {
+      sortOption = { createdAt: 1 };
+    } else if (req.query.sort === "title") {
+      sortOption = { title: 1 };
+    }
 
     // Get books with proper population
-    const books = await Book.find(query)
+    let booksQuery = Book.find(query)
       .populate("author", "firstName lastName")
       .populate("category", "name")
       .populate("createdBy", "firstName")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+      .sort(sortOption);
 
+    if (usePagination) {
+      booksQuery = booksQuery.skip(skip).limit(limit);
+    }
+
+    const books = await booksQuery;
     const totalBooks = await Book.countDocuments(query);
-    const totalPages = Math.ceil(totalBooks / limit);
 
     console.log("getBooks - Found books:", books.length);
+    console.log("getBooks - Total books in DB:", totalBooks);
 
-    res.status(200).json({
-      books,
-      totalBooks,
-      totalPages,
-      currentPage: page,
-      message:
-        books.length > 0 ? "Books retrieved successfully" : "No books found",
-    });
+    if (usePagination) {
+      // Server-side pagination response
+      const totalPages = Math.ceil(totalBooks / limit);
+      console.log("getBooks - Pagination response:", {
+        booksCount: books.length,
+        totalBooks,
+        totalPages,
+        currentPage: currentPage,
+        limit,
+        skip,
+      });
+      res.status(200).json({
+        books,
+        totalBooks,
+        totalPages,
+        currentPage: currentPage,
+        message:
+          books.length > 0 ? "Books retrieved successfully" : "No books found",
+      });
+    } else {
+      // Client-side pagination response (all books)
+      console.log("getBooks - Client-side response:", {
+        booksCount: books.length,
+        totalBooks,
+      });
+      res.status(200).json({
+        books,
+        totalBooks,
+        message:
+          books.length > 0 ? "Books retrieved successfully" : "No books found",
+      });
+    }
   } catch (error) {
     console.error("getBooks - Error:", error);
     res.status(500).json({ message: "Server Error", error: error.message });

@@ -11,6 +11,9 @@ function CategoryBooks() {
   const [category, setCategory] = useState(null);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [userReservations, setUserReservations] = useState([]);
+  const [reservationsLoaded, setReservationsLoaded] = useState(false);
 
   useEffect(() => {
     const fetchCategoryAndBooks = async () => {
@@ -43,6 +46,69 @@ function CategoryBooks() {
       fetchCategoryAndBooks();
     }
   }, [categoryId]);
+
+  // Fetch user and reservations
+  useEffect(() => {
+    const storedUser =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      setUser(null);
+    }
+  }, []);
+
+  // Fetch user reservations when user state is available
+  useEffect(() => {
+    if (user) {
+      fetchUserReservations();
+    } else {
+      // If no user, mark reservations as "loaded" with empty array
+      setReservationsLoaded(true);
+    }
+  }, [user]);
+
+  const fetchUserReservations = async () => {
+    const storedUser =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (!storedUser) {
+      setReservationsLoaded(true);
+      return;
+    }
+
+    try {
+      const userData = JSON.parse(storedUser);
+      const token =
+        userData.token || userData.accessToken || userData.jwt || "";
+      if (!token) {
+        setReservationsLoaded(true);
+        return;
+      }
+
+      const response = await apiClient.get(`/api/reservations`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUserReservations(response.data.reservations || []);
+      setReservationsLoaded(true);
+    } catch (error) {
+      console.error("Error fetching user reservations:", error);
+      setUserReservations([]);
+      setReservationsLoaded(true);
+    }
+  };
+
+  // Helper function to get reservation status for a book
+  const getBookReservationStatus = (bookId) => {
+    const reservation = userReservations.find(
+      (res) =>
+        res.book?._id === bookId &&
+        (res.status === "active" || res.status === "pending")
+    );
+    return reservation ? reservation.status : null;
+  };
 
   if (loading) {
     return <Loading />;
@@ -115,7 +181,16 @@ function CategoryBooks() {
           {books
             .filter((book) => book && typeof book === "object")
             .map((book) => (
-              <Card key={book._id || book.id || Math.random()} book={book} />
+              <Card
+                key={book._id || book.id || Math.random()}
+                book={book}
+                reservationStatus={
+                  reservationsLoaded
+                    ? getBookReservationStatus(book._id || book.id)
+                    : undefined
+                }
+                onReservationUpdate={fetchUserReservations}
+              />
             ))}
         </div>
       )}
